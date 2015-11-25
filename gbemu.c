@@ -131,12 +131,25 @@ int gbemu_get_rom_size(uint8_t rom_size_flag)
    return (0x8000 << (rom_size_flag & 0xF)) + ((rom_size_flag >> 4)? 0x100000: 0x0);
 }
 
-bool gbemu_load_game(void* data, size_t size)
+bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
 {
    int i;
 
+   uint8_t* bios = (uint8_t*)bios_data;
    gbemu_rom_header_t* header = (gbemu_rom_header_t*)data;
    cartridge_info_t* cart_info = (cartridge_info_t*)&cartridge_info_lut[header->cartridge_type];
+
+   if(bios)
+   {
+      printf("bios : ");
+      for(i = 0; i< 0x100; i++)
+      {
+         if(!(i&0xF))
+            printf("\n");
+         printf("%02X ",bios[i]);
+      }
+      printf("\n");
+   }
    printf("header info\n");
    printf("buffer0 : ");
    for(i = 0; i< 0x100; i++)

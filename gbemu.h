@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-bool gbemu_load_game(void* data, size_t size);
+bool gbemu_load_game(const void* data, size_t size, const void* bios_data);
 
 
 #define DEBUG_HOLD() do{printf("%s@%s:%d.\n",__FUNCTION__, __FILE__, __LINE__);fflush(stdout);gbemu_wait_for_input();}while(0)

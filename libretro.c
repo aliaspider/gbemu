@@ -174,16 +174,45 @@ bool retro_load_game(const struct retro_game_info* game)
 {
    init_descriptors();
    check_variables();
+
+   uint8_t bios_data[256];
+   char bios_path[PATH_MAX_LENGTH];
+   char* system_dir;
+   if(environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir)
+      strncpy(bios_path, system_dir, sizeof(bios_path));
+   else if (game->path)
+      strncpy(bios_path, game->path, sizeof(bios_path));
+   else
+      strncpy(bios_path, ".", sizeof(bios_path));
+#if defined(_WIN32)
+   char slash = '\\';
+#else
+   char slash = '/';
+#endif
+   char* tmp = strrchr(bios_path, slash);
+   if(!tmp)
+      tmp = strrchr(bios_path, '\0');
+   *tmp++ = slash;
+   strcpy(tmp, "gbbios.gb");
+
    retro_sleep(10);
    fflush(stdout);
-
    printf("romd info\n");
    printf("path : %s\n", game->path);
    printf("size : %u\n", game->size);
    fflush(stdout);
 
-   gbemu_load_game(game->data, game->size);
+   printf("loading bios from : %s\n", bios_path);
+   FILE* fp = fopen(bios_path, "rb");
+   if(fp)
+   {
+      fread(bios_data, 1, sizeof(bios_data), fp);
+      fclose(fp);
+   }
+   else
+      printf("bios not found !\n");
 
+   gbemu_load_game(game->data, game->size, fp? bios_data: NULL);
 
    return true;
 }
