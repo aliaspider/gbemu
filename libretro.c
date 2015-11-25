@@ -34,7 +34,7 @@ struct retro_perf_callback perf_cb;
 
 void gbemu_wait_for_input(void)
 {
-   if(!poll_cb)
+   if(!poll_cb || !input_cb)
       return;
 
    printf("press START\n");
@@ -42,7 +42,7 @@ void gbemu_wait_for_input(void)
 
    do
    {
-      retro_sleep(10);
+      retro_sleep(50);
       poll_cb();
       if(input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT))
          exit(0);
@@ -62,7 +62,6 @@ void retro_set_environment(retro_environment_t cb)
       log_cb = NULL;
 
    environ_cb(RETRO_ENVIRONMENT_GET_PERF_INTERFACE, &perf_cb);
-
 }
 
 void retro_init(void)
@@ -175,15 +174,16 @@ bool retro_load_game(const struct retro_game_info* game)
 {
    init_descriptors();
    check_variables();
-
+   retro_sleep(10);
    fflush(stdout);
-   printf("game loaded\n");
+
+   printf("romd info\n");
    printf("path : %s\n", game->path);
    printf("size : %u\n", game->size);
-   printf("meta : %u\n", game->meta);
    fflush(stdout);
 
-   DEBUG_HOLD();
+   gbemu_load_game(game->data, game->size);
+
 
    return true;
 }
