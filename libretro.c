@@ -165,7 +165,7 @@ void retro_run(void)
    RETRO_PERFORMANCE_STOP(gbemu_main_func);
 
    video_cb(NULL, 160, 144, 320);
-   DEBUG_HOLD();
+//   DEBUG_HOLD();
    printf("frame : %i\n", frames++);
    fflush(stdout);
 }

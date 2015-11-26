@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "retro_miscellaneous.h"
+
 #include "cpu.h"
 #include "cart.h"
 
