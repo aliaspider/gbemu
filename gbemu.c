@@ -77,5 +77,11 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
 
 
    fflush(stdout);
-   exit(0);
+//   exit(0);
+}
+
+
+void gbemu_run(void)
+{
+   gbemu_cpu_run();
 }

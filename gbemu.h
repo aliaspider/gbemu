@@ -51,6 +51,7 @@ typedef struct
 
 extern gbemu_state_t GB;
 
+void gbemu_run(void);
 
 bool gbemu_load_game(const void* data, size_t size, const void* bios_data);
 

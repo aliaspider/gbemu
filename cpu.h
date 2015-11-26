@@ -52,5 +52,7 @@ typedef struct
    };
    uint16_t SP;
    uint16_t PC;
+   int cycles;
 }gbemu_cpu_t;
 
+void gbemu_cpu_run(void);

@@ -161,7 +161,7 @@ void retro_run(void)
 
    RETRO_PERFORMANCE_INIT(gbemu_main_func);
    RETRO_PERFORMANCE_START(gbemu_main_func);
-   //
+   gbemu_run();
    RETRO_PERFORMANCE_STOP(gbemu_main_func);
 
    video_cb(NULL, 160, 144, 320);
