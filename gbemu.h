@@ -6,6 +6,52 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "cpu.h"
+#include "cart.h"
+
+
+typedef struct
+{
+   union
+   {
+      struct
+      {
+         union
+         {
+            struct
+            {
+               uint8_t ROM00[0x4000];
+               uint8_t ROMXX[0x4000];
+            };
+            uint8_t ROM[0x8000];
+            gbemu_rom_header_t HEADER;
+         };
+         uint8_t VRAM[0x2000];
+         union
+         {
+            struct
+            {
+               uint8_t WRAM0[0x1000];
+               uint8_t WRAM1[0x1000];
+            };
+            uint8_t WRAM[0x2000];
+         };
+         uint8_t ECHO[0x1E00];
+         uint8_t OAM[0xA0];
+         uint8_t unused[0x60];
+         uint8_t IO[0x80];
+         uint8_t HRAM[0x7F];
+         uint8_t IE_reg;
+      };
+      uint8_t MEMORY[0x10000];
+   };
+   uint8_t BIOS[0x100];
+   gbemu_cpu_t CPU;
+}gbemu_state_t;
+
+extern gbemu_state_t GB;
+
+
 bool gbemu_load_game(const void* data, size_t size, const void* bios_data);
 
 

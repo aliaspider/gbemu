@@ -5,7 +5,8 @@ PERF_TEST   = 0
 OBJECTS :=
 OBJECTS += libretro.o
 OBJECTS += gbemu.o
-
+OBJECTS += cpu.o
+OBJECTS += cart.o
 
 
 ifeq ($(platform),)
