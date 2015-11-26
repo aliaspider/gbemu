@@ -1,5 +1,5 @@
-
 #include "gbemu.h"
+#include <string.h>
 
 typedef enum
 {
@@ -124,6 +124,98 @@ typedef struct
    uint8_t global_checksum_low;
 } gbemu_rom_header_t;
 
+typedef struct
+{
+   union
+   {
+      struct
+      {
+         union
+         {
+            struct
+            {
+               unsigned FL :4;
+               unsigned FC :1;
+               unsigned FH :1;
+               unsigned FN :1;
+               unsigned FZ :1;
+            };
+            uint8_t F;
+         };
+         uint8_t A;
+      };
+      uint16_t AF;
+   };
+   union
+   {
+      struct
+      {
+         uint8_t C;
+         uint8_t B;
+      };
+      uint16_t BC;
+   };
+   union
+   {
+      struct
+      {
+         uint8_t E;
+         uint8_t D;
+      };
+      uint16_t DE;
+   };
+   union
+   {
+      struct
+      {
+         uint8_t L;
+         uint8_t H;
+      };
+      uint16_t HL;
+   };
+   uint16_t SP;
+   uint16_t PC;
+}gbemu_cpu_t;
+
+struct
+{
+   union
+   {
+      struct
+      {
+         union
+         {
+            struct
+            {
+               uint8_t ROM00[0x4000];
+               uint8_t ROMXX[0x4000];
+            };
+            uint8_t ROM[0x8000];
+            gbemu_rom_header_t HEADER;
+         };
+         uint8_t VRAM[0x2000];
+         union
+         {
+            struct
+            {
+               uint8_t WRAM0[0x1000];
+               uint8_t WRAM1[0x1000];
+            };
+            uint8_t WRAM[0x2000];
+         };
+         uint8_t ECHO[0x1E00];
+         uint8_t OAM[0xA0];
+         uint8_t unused[0x60];
+         uint8_t IO[0x80];
+         uint8_t HRAM[0x7F];
+         uint8_t IE_reg;
+      };
+      uint8_t MEMORY[0x10000];
+   };
+   uint8_t BIOS[0x100];
+   gbemu_cpu_t CPU;
+}GB;
+
 static const int gbemu_ram_size_lut[4] = {0, 0x800, 0x2000, 0x8000};
 
 int gbemu_get_rom_size(uint8_t rom_size_flag)
@@ -135,66 +227,70 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
 {
    int i;
 
-   uint8_t* bios = (uint8_t*)bios_data;
-   gbemu_rom_header_t* header = (gbemu_rom_header_t*)data;
-   cartridge_info_t* cart_info = (cartridge_info_t*)&cartridge_info_lut[header->cartridge_type];
+   cartridge_info_t* cart_info = (cartridge_info_t*)&cartridge_info_lut[GB.HEADER.cartridge_type];
 
-   if(bios)
+   if(size > sizeof(GB.ROM))
+      size = sizeof(GB.ROM);
+   memcpy(GB.ROM, data, size);
+
+   if(bios_data)
    {
+      memcpy(GB.BIOS, bios_data, 0x100);
       printf("bios : ");
       for(i = 0; i< 0x100; i++)
       {
          if(!(i&0xF))
             printf("\n");
-         printf("%02X ",bios[i]);
+         printf("%02X ",GB.BIOS[i]);
       }
       printf("\n");
    }
+
    printf("header info\n");
    printf("buffer0 : ");
    for(i = 0; i< 0x100; i++)
    {
       if(!(i&0xF))
          printf("\n");
-      printf("%02X ",header->buffer0[i]);
+      printf("%02X ",GB.HEADER.buffer0[i]);
    }
    printf("\n");
-   printf("startup : 0x%08X\n", *(uint32_t*)header->startup);
+   printf("startup : 0x%08X\n", *(uint32_t*)GB.HEADER.startup);
    printf("logo : ");
    for(i = 0; i< 0x30; i++)
    {
       if(!(i&0xF))
          printf("\n");
-      printf("%02X ",header->logo[i]);
+      printf("%02X ",GB.HEADER.logo[i]);
    }
    printf("\n");
 
-   printf("Title : %s\n", header->title);
-   printf("gbc Title : %s\n", header->gbc_title);
+   printf("Title : %s\n", GB.HEADER.title);
+   printf("gbc Title : %s\n", GB.HEADER.gbc_title);
    printf("gbc manufacturer code : 0x%02X%02X%02X%02X\n",
-          (uint32_t)header->gbc_manufacturer_code[0],
-          (uint32_t)header->gbc_manufacturer_code[1],
-          (uint32_t)header->gbc_manufacturer_code[2],
-          (uint32_t)header->gbc_manufacturer_code[3]);
-   printf("gbc flag : 0x%02X\n", (uint32_t)header->gbc_flag);
+          (uint32_t)GB.HEADER.gbc_manufacturer_code[0],
+          (uint32_t)GB.HEADER.gbc_manufacturer_code[1],
+          (uint32_t)GB.HEADER.gbc_manufacturer_code[2],
+          (uint32_t)GB.HEADER.gbc_manufacturer_code[3]);
+   printf("gbc flag : 0x%02X\n", (uint32_t)GB.HEADER.gbc_flag);
 
-   printf("new licencee code : 0x%04X\n", *(uint16_t*)header->new_licencee_code);
-   printf("super gameboy flag : 0x%02X\n", (uint32_t)header->sgb_flag);
+   printf("new licencee code : 0x%04X\n", *(uint16_t*)GB.HEADER.new_licencee_code);
+   printf("super gameboy flag : 0x%02X\n", (uint32_t)GB.HEADER.sgb_flag);
 
-   printf("cart type : 0x%02X --> %s%s%s%s%s\n",(uint32_t)header->cartridge_type,
+   printf("cart type : 0x%02X --> %s%s%s%s%s\n",(uint32_t)GB.HEADER.cartridge_type,
           cartridge_type_str[cart_info->type], cart_info->RAM?"+RAM":"",
           cart_info->BATTERY?"+BATTERY":"", cart_info->TIMER?"+TIMER":"",
           cart_info->RUMBLE?"+RUMBLE":"");
-   printf("cart type : 0x%02X\n", (uint32_t)header->cartridge_type);
-   printf("rom size : 0x%X --> 0x%X(%u, %u banks)\n", header->rom_size, gbemu_get_rom_size(header->rom_size), gbemu_get_rom_size(header->rom_size)
-          , gbemu_get_rom_size(header->rom_size) >> 14);
-   printf("ram size : %u\n", gbemu_ram_size_lut[header->ram_size]);
-   printf("destination code : 0x%02X (%sJapanese)\n", (uint32_t)header->destination_code, header->destination_code?"non-":"");
-   printf("old licencee code : 0x%02X\n", (uint32_t)header->old_licencee_code);
-   printf("version number : 0x%02X\n", (uint32_t)header->version_number);
-   printf("header checksum : 0x%02X\n", (uint32_t)header->header_checksum);
-   printf("global checksum : 0x%02X%02X\n", (uint32_t)header->global_checksum_high
-          , (uint32_t)header->global_checksum_low);
+   printf("cart type : 0x%02X\n", (uint32_t)GB.HEADER.cartridge_type);
+   printf("rom size : 0x%X --> 0x%X(%u, %u banks)\n", GB.HEADER.rom_size, gbemu_get_rom_size(GB.HEADER.rom_size), gbemu_get_rom_size(GB.HEADER.rom_size)
+          , gbemu_get_rom_size(GB.HEADER.rom_size) >> 14);
+   printf("ram size : %u\n", gbemu_ram_size_lut[GB.HEADER.ram_size]);
+   printf("destination code : 0x%02X (%sJapanese)\n", (uint32_t)GB.HEADER.destination_code, GB.HEADER.destination_code?"non-":"");
+   printf("old licencee code : 0x%02X\n", (uint32_t)GB.HEADER.old_licencee_code);
+   printf("version number : 0x%02X\n", (uint32_t)GB.HEADER.version_number);
+   printf("header checksum : 0x%02X\n", (uint32_t)GB.HEADER.header_checksum);
+   printf("global checksum : 0x%02X%02X\n", (uint32_t)GB.HEADER.global_checksum_high
+          , (uint32_t)GB.HEADER.global_checksum_low);
 
 
 
