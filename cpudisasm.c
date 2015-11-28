@@ -5,10 +5,10 @@
 
 int gbemu_disasm_current(gbemu_cpu_t* CPU)
 {
-   static const char* reg_names[] =
-   {
-      "B", "C", "D", "E", "H", "L", "(HL)", "A"
-   };
+   static const char* reg_names[] = {"B", "C", "D", "E", "H", "L", "(HL)", "A"};
+   static const char* reg16_names[] = {"BC", "DE", "HL", "SP"};
+   static const char* reg16_addr_names[] = {"(BC)", "(DE)", "(HL+)", "(HL-)"};
+   static const char* cond_names[] = {"NZ", "Z", "NC", "C"};
 
    char immediate8[3];
    char immediate16[5];
@@ -21,24 +21,24 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
       {
          struct
          {
-            unsigned r1  : 3;
-            unsigned r0  : 3;
-            unsigned op0 : 2;
+            unsigned r1        : 3;
+            unsigned r0        : 3;
+            unsigned m11000000 : 2;
          };
          struct
          {
-            unsigned op1 : 3;
-            unsigned op2 : 1;
-            unsigned r2  : 2;
-            unsigned     : 2;
+            unsigned m00000111   : 3;
+            unsigned m00001000   : 1;
+            unsigned r2          : 2;
+            unsigned             : 2;
 
          };
          struct
          {
-            unsigned     : 3;
-            unsigned r3  : 2;
-            unsigned op3 : 1;
-            unsigned     : 2;
+            unsigned             : 3;
+            unsigned r3          : 2;
+            unsigned m00100000   : 1;
+            unsigned             : 2;
 
          };
          uint8_t val;
@@ -130,18 +130,57 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
       break;
 
    default:
-      switch (op.op0)
+      switch (op.m11000000)
       {
       case 0b00:
-         switch (op.op1)
+         switch (op.m00000111)
          {
          case 0b000:
             op.label = "JR";
             op.size++;
+            op.cycles += 2;
+            if (op.m00100000 == 0)
+               op.operand0 = immediate8;
+            else
+            {
+               op.operand0 = cond_names[op.r3];
+               op.cycles2 = 8;
+               op.operand1 = immediate8;
+            }
             break;
          case 0b001:
+            if (op.m00001000 == 0)
+            {
+               op.label = "LD";
+               op.operand0 = reg16_names[op.r2];
+               op.operand1 = immediate16;
+               op.size += 2;
+               op.cycles += 2;
+            }
+            else
+            {
+               op.label = "ADD";
+               op.operand0 = "HL";
+               op.operand1 = reg16_names[op.r2];
+               op.cycles ++;
+               op.negative = "0";
+               op.halfcarry = "H";
+               op.carry = "C";
+            }
             break;
          case 0b010:
+            op.label = "LD";
+            op.cycles++;
+            if (op.m00001000 == 0)
+            {
+               op.operand0 = reg16_addr_names[op.r2];
+               op.operand1 = "A";
+            }
+            else
+            {
+               op.operand0 = "A";
+               op.operand1 = reg16_addr_names[op.r2];
+            }
             break;
          case 0b011:
             break;
@@ -165,7 +204,7 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
       case 0b10:
          break;
       case 0b11:
-         switch (op.op1)
+         switch (op.m00000111)
          {
          case 0b000:
             break;
