@@ -45,7 +45,8 @@ typedef struct
          uint8_t HRAM[0x7F];
          uint8_t IE_reg;
       };
-      uint8_t MEMORY[0x10000];
+      uint8_t MEMORY [0x10000];
+      int8_t  sMEMORY[0x10000];
    };
    uint8_t BIOS[0x100];
    gbemu_cpu_t CPU;

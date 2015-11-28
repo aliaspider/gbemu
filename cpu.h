@@ -1,3 +1,6 @@
+#ifndef CPU_H
+#define CPU_H
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -56,3 +59,5 @@ typedef struct
 }gbemu_cpu_t;
 
 void gbemu_cpu_run(void);
+
+#endif // CPU_H

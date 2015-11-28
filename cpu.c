@@ -1,4 +1,5 @@
 #include "gbemu.h"
+#include "cpudisasm.h"
 #include <stdint.h>
 #include <signal.h>
 
@@ -6,8 +7,9 @@
 void gbemu_cpu_run(void)
 {
    gbemu_cpu_t CPU = GB.CPU;
-
+   
 next_instruction:
+
    switch (GB.MEMORY[CPU.PC++])
    {
    // NOP
@@ -21,8 +23,8 @@ next_instruction:
    case 0x00:
       CPU.cycles++;
       goto next_instruction;
-
-/* LOAD - STORE */
+      
+   /* LOAD - STORE */
    // LD r, d8
    case 0x06:
       CPU.B = GB.MEMORY[CPU.PC++];
@@ -52,7 +54,7 @@ next_instruction:
       CPU.A = GB.MEMORY[CPU.PC++];
       CPU.cycles += 2;
       goto next_instruction;
-
+      
    // LD r1, r2
    case 0x78:
       CPU.A = CPU.B;
@@ -82,15 +84,15 @@ next_instruction:
       CPU.A = GB.MEMORY[CPU.HL];
       CPU.cycles += 2;
       goto next_instruction;
-//   case 0x7F:
-//      CPU.A = CPU.A;
-//      CPU.cycles ++;
-//      goto next_instruction;
-
-//   case 0x40:
-//     CPU.B = CPU.B;
-//     CPU.cycles ++;
-//     goto next_instruction;
+   //   case 0x7F:
+   //      CPU.A = CPU.A;
+   //      CPU.cycles ++;
+   //      goto next_instruction;
+   
+   //   case 0x40:
+   //     CPU.B = CPU.B;
+   //     CPU.cycles ++;
+   //     goto next_instruction;
    case 0x41:
       CPU.B = CPU.C;
       CPU.cycles ++;
@@ -115,15 +117,15 @@ next_instruction:
       CPU.B = GB.MEMORY[CPU.HL];
       CPU.cycles += 2;
       goto next_instruction;
-
+      
    case 0x48:
       CPU.C = CPU.B;
       CPU.cycles ++;
       goto next_instruction;
-//   case 0x49:
-//     CPU.C = CPU.C;
-//     CPU.cycles ++;
-//     goto next_instruction;
+   //   case 0x49:
+   //     CPU.C = CPU.C;
+   //     CPU.cycles ++;
+   //     goto next_instruction;
    case 0x4A:
       CPU.C = CPU.D;
       CPU.cycles ++;
@@ -144,19 +146,19 @@ next_instruction:
       CPU.C = GB.MEMORY[CPU.HL];
       CPU.cycles += 2;
       goto next_instruction;
-
+      
    case 0x50:
       CPU.D = CPU.B;
       CPU.cycles ++;
       goto next_instruction;
    case 0x51:
-     CPU.D = CPU.C;
-     CPU.cycles ++;
-     goto next_instruction;
-//   case 0x52:
-//      CPU.D = CPU.D;
-//      CPU.cycles ++;
-//      goto next_instruction;
+      CPU.D = CPU.C;
+      CPU.cycles ++;
+      goto next_instruction;
+   //   case 0x52:
+   //      CPU.D = CPU.D;
+   //      CPU.cycles ++;
+   //      goto next_instruction;
    case 0x53:
       CPU.D = CPU.E;
       CPU.cycles ++;
@@ -173,7 +175,7 @@ next_instruction:
       CPU.D = GB.MEMORY[CPU.HL];
       CPU.cycles += 2;
       goto next_instruction;
-
+      
    case 0x58:
       CPU.E = CPU.B;
       CPU.cycles ++;
@@ -186,10 +188,10 @@ next_instruction:
       CPU.E = CPU.D;
       CPU.cycles ++;
       goto next_instruction;
-//   case 0x5B:
-//      CPU.E = CPU.E;
-//      CPU.cycles ++;
-//      goto next_instruction;
+   //   case 0x5B:
+   //      CPU.E = CPU.E;
+   //      CPU.cycles ++;
+   //      goto next_instruction;
    case 0x5C:
       CPU.E = CPU.H;
       CPU.cycles ++;
@@ -202,8 +204,8 @@ next_instruction:
       CPU.E = GB.MEMORY[CPU.HL];
       CPU.cycles += 2;
       goto next_instruction;
-
-
+      
+      
    case 0x60:
       CPU.H = CPU.B;
       CPU.cycles ++;
@@ -220,10 +222,10 @@ next_instruction:
       CPU.H = CPU.E;
       CPU.cycles ++;
       goto next_instruction;
-//   case 0x64:
-//      CPU.H = CPU.H;
-//      CPU.cycles ++;
-//      goto next_instruction;
+   //   case 0x64:
+   //      CPU.H = CPU.H;
+   //      CPU.cycles ++;
+   //      goto next_instruction;
    case 0x65:
       CPU.H = CPU.L;
       CPU.cycles ++;
@@ -232,7 +234,7 @@ next_instruction:
       CPU.H = GB.MEMORY[CPU.HL];
       CPU.cycles += 2;
       goto next_instruction;
-
+      
    case 0x68:
       CPU.L = CPU.B;
       CPU.cycles ++;
@@ -253,15 +255,15 @@ next_instruction:
       CPU.L = CPU.H;
       CPU.cycles ++;
       goto next_instruction;
-//   case 0x6D:
-//      CPU.L = CPU.L;
-//      CPU.cycles ++;
-//      goto next_instruction;
+   //   case 0x6D:
+   //      CPU.L = CPU.L;
+   //      CPU.cycles ++;
+   //      goto next_instruction;
    case 0x6E:
       CPU.L = GB.MEMORY[CPU.HL];
       CPU.cycles += 2;
       goto next_instruction;
-
+      
    case 0x70:
       GB.MEMORY[CPU.HL] = CPU.B;
       CPU.cycles += 2;
@@ -290,7 +292,7 @@ next_instruction:
       GB.MEMORY[CPU.HL] = GB.MEMORY[CPU.PC++];
       CPU.cycles += 3;
       goto next_instruction;
-
+      
    // LD A, (r)
    case 0x0A:
       CPU.A = GB.MEMORY[CPU.BC];
@@ -308,7 +310,7 @@ next_instruction:
       CPU.cycles += 3;
       goto next_instruction;
    }
-
+   
    // LD r, A
    case 0x47:
       CPU.B = CPU.A;
@@ -334,8 +336,8 @@ next_instruction:
       CPU.L = CPU.A;
       CPU.cycles ++;
       goto next_instruction;
-
-  // LD (rr), A
+      
+   // LD (rr), A
    case 0x02:
       GB.MEMORY[CPU.BC] = CPU.A;
       CPU.cycles += 2;
@@ -384,7 +386,7 @@ next_instruction:
       GB.MEMORY[CPU.HL++] = CPU.A;
       CPU.cycles += 2;
       goto next_instruction;
-
+      
    // LD A,(d8)
    case 0xF0:
       CPU.A = GB.MEMORY[GB.MEMORY[CPU.PC++] | 0xFF00];
@@ -395,7 +397,7 @@ next_instruction:
       GB.MEMORY[GB.MEMORY[CPU.PC++] | 0xFF00] = CPU.A;
       CPU.cycles += 3;
       goto next_instruction;
-
+      
    // LD (rr), d16
    case 0x01:
    {
@@ -498,10 +500,451 @@ next_instruction:
       CPU.A = GB.MEMORY[CPU.SP++];
       CPU.cycles += 3;
       goto next_instruction;
+      
+   /* ALU */
+   // ADD A, n
+   case 0x80:
+   {
+      uint8_t val = CPU.B;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x81:
+   {
+      uint8_t val = CPU.C;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x82:
+   {
+      uint8_t val = CPU.D;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x83:
+   {
+      uint8_t val = CPU.E;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x84:
+   {
+      uint8_t val = CPU.H;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x85:
+   {
+      uint8_t val = CPU.H;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x86:
+   {
+      uint8_t val = GB.MEMORY[CPU.HL];
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 2;
+      goto next_instruction;
+   }
+   case 0x87:
+   {
+      uint8_t val = CPU.A;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0xC6:
+   {
+      uint8_t val = GB.MEMORY[CPU.PC++];
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 2;
+      goto next_instruction;
+   }
+   
+   // ADC A, n
+   case 0x88:
+   {
+      uint8_t val = CPU.B + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x89:
+   {
+      uint8_t val = CPU.C + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x8A:
+   {
+      uint8_t val = CPU.D + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x8B:
+   {
+      uint8_t val = CPU.E + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x8C:
+   {
+      uint8_t val = CPU.H + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x8D:
+   {
+      uint8_t val = CPU.H + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x8E:
+   {
+      uint8_t val = GB.MEMORY[CPU.HL] + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 2;
+      goto next_instruction;
+   }
+   case 0x8F:
+   {
+      uint8_t val = CPU.A + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0xCE:
+   {
+      uint8_t val = GB.MEMORY[CPU.PC++] + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 2;
+      goto next_instruction;
+   }
 
-/* ALU */
+
+   // SUB A, n
+   case 0x90:
+   {
+      uint8_t val = CPU.B;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x91:
+   {
+      uint8_t val = CPU.C;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x92:
+   {
+      uint8_t val = CPU.D;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x93:
+   {
+      uint8_t val = CPU.E;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x94:
+   {
+      uint8_t val = CPU.H;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x95:
+   {
+      uint8_t val = CPU.H;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x96:
+   {
+      uint8_t val = GB.MEMORY[CPU.HL];
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 2;
+      goto next_instruction;
+   }
+   case 0x97:
+   {
+      uint8_t val = CPU.A;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0xD6:
+   {
+      uint8_t val = GB.MEMORY[CPU.PC++];
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 2;
+      goto next_instruction;
+   }
+
+   // ADC A, n
+   case 0x98:
+   {
+      uint8_t val = CPU.B + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x99:
+   {
+      uint8_t val = CPU.C + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x9A:
+   {
+      uint8_t val = CPU.D + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x9B:
+   {
+      uint8_t val = CPU.E + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x9C:
+   {
+      uint8_t val = CPU.H + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x9D:
+   {
+      uint8_t val = CPU.H + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0x9E:
+   {
+      uint8_t val = GB.MEMORY[CPU.HL] + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 2;
+      goto next_instruction;
+   }
+   case 0x9F:
+   {
+      uint8_t val = CPU.A + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 1;
+      goto next_instruction;
+   }
+   case 0xDE:
+   {
+      uint8_t val = GB.MEMORY[CPU.PC++] + CPU.FC;
+      unsigned sum = CPU.A + val;
+      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
+      CPU.A = sum;
+      CPU.FZ = !CPU.A;
+      CPU.FN = 0;
+      CPU.FC = sum >> 8;
+      CPU.cycles += 2;
+      goto next_instruction;
+   }
 
 
+   
    default:
       retro_sleep(10);
       printf("unknown opcode : 0x%02X\n", GB.MEMORY[CPU.PC - 1]);
@@ -510,6 +953,6 @@ next_instruction:
       exit(0);
       break;
    }
-
+   
    GB.CPU = CPU;
 }
