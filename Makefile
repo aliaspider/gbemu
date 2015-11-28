@@ -6,6 +6,7 @@ OBJECTS :=
 OBJECTS += libretro.o
 OBJECTS += gbemu.o
 OBJECTS += cpu.o
+OBJECTS += cpudisasm.o
 OBJECTS += cart.o
 
 

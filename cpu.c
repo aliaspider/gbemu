@@ -9,6 +9,8 @@ void gbemu_cpu_run(void)
    gbemu_cpu_t CPU = GB.CPU;
    
 next_instruction:
+   gbemu_dump_state(&CPU);
+   gbemu_disasm_current(&CPU);
 
    switch (GB.MEMORY[CPU.PC++])
    {
