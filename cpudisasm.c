@@ -3,7 +3,7 @@
 #include "cpu.h"
 #include "cpudisasm.h"
 
-void gbemu_disasm_current(gbemu_cpu_t* CPU)
+int gbemu_disasm_current(gbemu_cpu_t* CPU)
 {
    static const char* reg_names[] =
    {
@@ -29,7 +29,15 @@ void gbemu_disasm_current(gbemu_cpu_t* CPU)
          {
             unsigned op1 : 3;
             unsigned op2 : 1;
-            unsigned rr  : 2;
+            unsigned r2  : 2;
+            unsigned     : 2;
+
+         };
+         struct
+         {
+            unsigned     : 3;
+            unsigned r3  : 2;
+            unsigned op3 : 1;
             unsigned     : 2;
 
          };
@@ -38,10 +46,10 @@ void gbemu_disasm_current(gbemu_cpu_t* CPU)
       const char* label;
       const char* operand0;
       const char* operand1;
-      char zero;
-      char negative;
-      char halfcarry;
-      char carry;
+      char* zero;
+      char* negative;
+      char* halfcarry;
+      char* carry;
       int cycles;
       int cycles2;
       int size;
@@ -52,19 +60,21 @@ void gbemu_disasm_current(gbemu_cpu_t* CPU)
    op.label       = NULL;
    op.operand0    = NULL;
    op.operand1    = NULL;
-   op.zero        = '-';
-   op.negative    = '-';
-   op.halfcarry   = '-';
-   op.carry       = '-';
+   op.zero        = "-";
+   op.negative    = "-";
+   op.halfcarry   = "-";
+   op.carry       = "-";
    op.cycles      = 1;
-   op.cycles2     = 2;
+   op.cycles2     = 0;
    op.size        = 1;
 
 
-   snprintf(immediate8, sizeof(immediate8),"%02X", GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
-   snprintf(immediate16, sizeof(immediate16),"%02X%02X", GB.MEMORY[(CPU->PC + 2) & 0xFFFF], GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
-   snprintf(immediate8_addr, sizeof(immediate8_addr),"(%02X)", GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
-   snprintf(immediate16_addr, sizeof(immediate16_addr),"(%02X%02X)", GB.MEMORY[(CPU->PC + 2) & 0xFFFF], GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
+   snprintf(immediate8, sizeof(immediate8), "%02X", GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
+   snprintf(immediate16, sizeof(immediate16), "%02X%02X", GB.MEMORY[(CPU->PC + 2) & 0xFFFF],
+            GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
+   snprintf(immediate8_addr, sizeof(immediate8_addr), "(%02X)", GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
+   snprintf(immediate16_addr, sizeof(immediate16_addr), "(%02X%02X)", GB.MEMORY[(CPU->PC + 2) & 0xFFFF],
+            GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
 
    switch (op.val)
    {
@@ -84,6 +94,12 @@ void gbemu_disasm_current(gbemu_cpu_t* CPU)
    case 0x13:
       op.label = "DI";
       break;
+   case 0xC3:
+      op.label = "JP";
+      op.operand0 = immediate16;
+      op.size += 2;
+      op.cycles += 3;
+      break;
    case 0xCB:
       op.val = GB.MEMORY[(CPU->PC + 1) & 0xFFFF];
       op.size++;
@@ -91,6 +107,26 @@ void gbemu_disasm_current(gbemu_cpu_t* CPU)
       {
 
       }
+      break;
+   case 0xCD:
+      op.label = "CALL";
+      op.operand0 = immediate16;
+      op.size += 2;
+      op.cycles += 5;
+      break;
+   case 0xE0:
+      op.label = "LDH";
+      op.operand0 = immediate8_addr;
+      op.size++;
+      op.operand1 = "A";
+      op.cycles = 3;
+      break;
+   case 0xF0:
+      op.label = "LDH";
+      op.operand0 = "A";
+      op.operand1 = immediate8_addr;
+      op.size++;
+      op.cycles = 3;
       break;
 
    default:
@@ -129,23 +165,104 @@ void gbemu_disasm_current(gbemu_cpu_t* CPU)
       case 0b10:
          break;
       case 0b11:
+         switch (op.op1)
+         {
+         case 0b000:
+            break;
+         case 0b001:
+            break;
+         case 0b010:
+            break;
+         case 0b011:
+            break;
+         case 0b100:
+            break;
+         case 0b101:
+            break;
+         case 0b110:
+            op.operand0 = "A";
+            op.operand1 = immediate8;
+            op.size++;
+            op.cycles++;
+            op.zero = "Z";
+            switch (op.r0)
+            {
+            case 0b000:
+               op.label = "ADD";
+               op.negative = "0";
+               op.halfcarry = "H";
+               op.carry = "C";
+               break;
+            case 0b001:
+               op.label = "ADC";
+               op.negative = "0";
+               op.halfcarry = "H";
+               op.carry = "C";
+               break;
+            case 0b010:
+               op.label = "SUB";
+               op.negative = "1";
+               op.halfcarry = "H";
+               op.carry = "C";
+               break;
+            case 0b011:
+               op.label = "SBC";
+               op.negative = "1";
+               op.halfcarry = "H";
+               op.carry = "C";
+               break;
+            case 0b100:
+               op.label = "AND";
+               op.negative = "0";
+               op.halfcarry = "1";
+               op.carry = "0";
+               break;
+            case 0b101:
+               op.label = "XOR";
+               op.negative = "0";
+               op.halfcarry = "0";
+               op.carry = "0";
+               break;
+            case 0b110:
+               op.label = "OR";
+               op.negative = "0";
+               op.halfcarry = "0";
+               op.carry = "0";
+               break;
+            case 0b111:
+               op.label = "CP";
+               op.negative = "1";
+               op.halfcarry = "H";
+               op.carry = "C";
+               break;
+            }
+            break;
+         case 0b111:
+            break;
+         }
          break;
       }
       break;
    }
 
-   if(op.size == 1)
-      printf("%02X          :", GB.MEMORY[CPU->PC]);
-   else if(op.size == 2)
-      printf("%02X %02X     :", GB.MEMORY[CPU->PC], GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
+   printf("(%04X) ", CPU->PC);
+
+   if (op.size == 1)
+      printf("%02X       :", GB.MEMORY[CPU->PC]);
+   else if (op.size == 2)
+      printf("%02X %02X    :", GB.MEMORY[CPU->PC], GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
    else
-      printf("%02X %02X %02X:", GB.MEMORY[CPU->PC], GB.MEMORY[(CPU->PC + 1) & 0xFFFF], GB.MEMORY[(CPU->PC + 2) & 0xFFFF]);
+      printf("%02X %02X %02X :", GB.MEMORY[CPU->PC], GB.MEMORY[(CPU->PC + 1) & 0xFFFF], GB.MEMORY[(CPU->PC + 2) & 0xFFFF]);
 
    if (op.label)
    {
-      printf("+%i", op.cycles);
-      if()
-      printf("(1)(%c %c %c %c)  %s",
+      printf(" +%i", op.cycles);
+      if (op.cycles2)
+         printf("/%i", op.cycles2);
+      else
+         printf("  ");
+
+      printf(" (%i) (%s %s %s %s)  %s",
              op.size, op.zero, op.negative, op.halfcarry, op.carry,
              op.label);
       if (op.operand0)
@@ -154,13 +271,14 @@ void gbemu_disasm_current(gbemu_cpu_t* CPU)
          printf(", %s", op.operand1);
    }
    else
-      printf("+?  (?)(? ? ? ?)  ????");
+      printf(" +?   (?) (? ? ? ?)  ????");
 
 
 
 
    printf("\n");
    fflush(stdout);
+   return op.size;
 }
 
 void gbemu_dump_state(gbemu_cpu_t* CPU)
