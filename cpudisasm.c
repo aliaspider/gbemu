@@ -10,6 +10,7 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
    static const char* reg16_addr_names[] = {"(BC)", "(DE)", "(HL+)", "(HL-)"};
    static const char* cond_names[] = {"NZ", "Z", "NC", "C"};
    static const char* RST_labels[] = {"00H", "08H", "10H", "18H","20H", "28H", "30H", "38H"};
+   static const char* num_labels[] = {"0", "1", "2", "3","4", "5", "6", "7"};
 
    char immediate8[3];
    char sp_plus_immediate8[6];
@@ -163,11 +164,62 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
    case 0xCB:
       op.val = GB.MEMORY[(CPU->PC + 1) & 0xFFFF];
       op.size++;
-      switch (op.val)
+      op.cycles++;
+      if (op.r1 == 0b110)
+         op.cycles += 2;
+      switch (op.m11000000)
       {
-         op.label = "CB op";
-
-
+      op.operand1 = reg_names[op.r1];
+      op.zero = "Z";
+      op.negative = "0";
+      op.halfcarry = "0";
+      op.carry = "C";
+      case 0b00:
+         switch (op.r0)
+         {
+         case 0b000:
+            op.label = "RLC";
+            break;
+         case 0b001:
+            op.label = "RRC";
+            break;
+         case 0b010:
+            op.label = "RL";
+            break;
+         case 0b011:
+            op.label = "RR";
+            break;
+         case 0b100:
+            op.label = "SLA";
+            break;
+         case 0b101:
+            op.label = "SRA";
+            op.carry = "0";
+            break;
+         case 0b110:
+            op.label = "SWAP";
+            op.carry = "0";
+            break;
+         case 0b111:
+            op.label = "SRL";
+            break;
+         }
+         break;
+      case 0b01:
+         op.label = "BIT";
+         op.operand0 = num_labels[op.r0];
+         op.zero = "Z";
+         op.negative = "0";
+         op.halfcarry = "1";
+         break;
+      case 0b10:
+         op.label = "RES";
+         op.operand0 = num_labels[op.r0];
+         break;
+      case 0b11:
+         op.label = "SET";
+         op.operand0 = num_labels[op.r0];
+         break;
       }
       break;
    case 0xCD:
@@ -552,10 +604,15 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
       printf(" (%s %s %s %s)  %s", op.zero, op.negative, op.halfcarry, op.carry, op.label);
 
       if (op.operand0)
+      {
          printf(" %s", op.operand0);
+         if (op.operand1)
+            printf(", %s", op.operand1);
+      }
+      else
+         if (op.operand1)
+            printf("%s", op.operand1);
 
-      if (op.operand1)
-         printf(", %s", op.operand1);
    }
    else
       printf(" ?   (? ? ? ?)  ????");
