@@ -9,14 +9,17 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
    static const char* reg16_names[] = {"BC", "DE", "HL", "SP"};
    static const char* reg16_addr_names[] = {"(BC)", "(DE)", "(HL+)", "(HL-)"};
    static const char* cond_names[] = {"NZ", "Z", "NC", "C"};
-   static const char* RST_labels[] = {"00H", "08H", "10H", "18H","20H", "28H", "30H", "38H"};
+   static const char* RST_labels[] = {"00", "08", "10", "18","20", "28", "30", "38"};
    static const char* num_labels[] = {"0", "1", "2", "3","4", "5", "6", "7"};
 
    char immediate8[3];
-   char sp_plus_immediate8[6];
+   char signed_immediate8[4];
+   char sp_plus_signed_immediate8[6];
+   char pc_plus_signed_immediate8[12];
    char immediate16[5];
    char immediate8_addr[5];
    char immediate16_addr[7];
+
 
    struct
    {
@@ -72,13 +75,18 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
    op.size        = 1;
 
 
-   snprintf(immediate8, sizeof(immediate8), "%02X", GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
-   snprintf(sp_plus_immediate8, sizeof(sp_plus_immediate8), "SP+%02X", GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
-   snprintf(immediate16, sizeof(immediate16), "%02X%02X", GB.MEMORY[(CPU->PC + 2) & 0xFFFF],
-            GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
-   snprintf(immediate8_addr, sizeof(immediate8_addr), "(%02X)", GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
-   snprintf(immediate16_addr, sizeof(immediate16_addr), "(%02X%02X)", GB.MEMORY[(CPU->PC + 2) & 0xFFFF],
-            GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
+   uint8_t v0 = GB.MEMORY[(CPU->PC + 1) & 0xFFFF];
+   uint8_t v1 = GB.MEMORY[(CPU->PC + 2) & 0xFFFF];
+
+   snprintf(immediate8, sizeof(immediate8), "%02X", v0);
+   snprintf(signed_immediate8, sizeof(signed_immediate8), "%c%02X", (v0 & 0x80)? '-': '+', (v0 & 0x80)? 0x100 - v0: v0);
+   snprintf(sp_plus_signed_immediate8, sizeof(sp_plus_signed_immediate8), "SP%c%02X", (v0 & 0x80)? '-': '+', (v0 & 0x80)? 0x100 - v0: v0);
+   snprintf(pc_plus_signed_immediate8, sizeof(pc_plus_signed_immediate8),
+            "PC%c%02X(%04X)", (v0 & 0x80)? '-': '+', (v0 & 0x80)? 0x100 - v0: v0,
+            (CPU->PC + 2 + (int8_t)v0) & 0xFFFF);
+   snprintf(immediate16, sizeof(immediate16), "%02X%02X", v1, v0);
+   snprintf(immediate8_addr, sizeof(immediate8_addr), "(%02X)", v0);
+   snprintf(immediate16_addr, sizeof(immediate16_addr), "(%02X%02X)", v1, v0);
 
    switch (op.val)
    {
@@ -155,12 +163,6 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
       op.size += 2;
       op.cycles += 3;
       break;
-   case 0xF3:
-      op.label = "DI";
-      break;
-   case 0xFB:
-      op.label = "EI";
-      break;
    case 0xCB:
       op.val = GB.MEMORY[(CPU->PC + 1) & 0xFFFF];
       op.size++;
@@ -228,6 +230,14 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
       op.size += 2;
       op.cycles += 5;
       break;
+   case 0xC9:
+      op.label = "RET";
+      op.cycles = 4;
+      break;
+   case 0xD9:
+      op.label = "RETI";
+      op.cycles = 4;
+      break;
    case 0xE0:
       op.label = "LDH";
       op.operand0 = immediate8_addr;
@@ -245,7 +255,7 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
    case 0xE8:
       op.label = "ADD";
       op.operand0 = "SP";
-      op.operand1 = immediate8;
+      op.operand1 = signed_immediate8;
       op.size++;
       op.cycles = 4;
       op.zero = "0";
@@ -253,16 +263,32 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
       op.halfcarry = "H";
       op.carry = "C";
       break;
+   case 0xE9:
+      op.label = "JP";
+      op.operand0 = "(HL)";
+      break;
+   case 0xF3:
+      op.label = "DI";
+      break;
    case 0xF8:
       op.label = "LD";
       op.operand0 = "HL";
-      op.operand1 = sp_plus_immediate8;
+      op.operand1 = sp_plus_signed_immediate8;
       op.size++;
       op.cycles = 3;
       op.zero = "0";
       op.negative = "0";
       op.halfcarry = "H";
       op.carry = "C";
+      break;
+   case 0xF9:
+      op.label = "LD";
+      op.operand0 = "SP";
+      op.operand1 = "HL";
+      op.cycles++;
+      break;
+   case 0xFB:
+      op.label = "EI";
       break;
    case 0xD3:
    case 0xDB:
@@ -287,12 +313,12 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
             op.size++;
             op.cycles += 2;
             if (op.m00100000 == 0)
-               op.operand0 = immediate8;
+               op.operand0 = pc_plus_signed_immediate8;
             else
             {
                op.operand0 = cond_names[op.r3];
                op.cycles2 = 2;
-               op.operand1 = immediate8;
+               op.operand1 = pc_plus_signed_immediate8;
             }
             break;
          case 0b001:
@@ -379,7 +405,7 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
          op.zero = "Z";
          op.operand0 = "A";
          op.operand1 = reg_names[op.r1];
-         if (op.r0 == 0b110)
+         if (op.r1 == 0b110)
             op.cycles++;
          switch (op.r0)
          {
