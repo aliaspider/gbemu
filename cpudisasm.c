@@ -17,7 +17,7 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
    char sp_plus_signed_immediate8[6];
    char pc_plus_signed_immediate8[12];
    char immediate16[5];
-   char immediate8_addr[5];
+   char immediate8_addr[7];
    char immediate16_addr[7];
 
 
@@ -85,7 +85,7 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
             "PC%c%02X(%04X)", (v0 & 0x80)? '-': '+', (v0 & 0x80)? 0x100 - v0: v0,
             (CPU->PC + 2 + (int8_t)v0) & 0xFFFF);
    snprintf(immediate16, sizeof(immediate16), "%02X%02X", v1, v0);
-   snprintf(immediate8_addr, sizeof(immediate8_addr), "(%02X)", v0);
+   snprintf(immediate8_addr, sizeof(immediate8_addr), "(FF%02X)", v0);
    snprintf(immediate16_addr, sizeof(immediate16_addr), "(%02X%02X)", v1, v0);
 
    switch (op.val)
