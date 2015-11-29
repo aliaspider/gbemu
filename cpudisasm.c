@@ -9,6 +9,7 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
    static const char* reg16_names[] = {"BC", "DE", "HL", "SP"};
    static const char* reg16_addr_names[] = {"(BC)", "(DE)", "(HL+)", "(HL-)"};
    static const char* cond_names[] = {"NZ", "Z", "NC", "C"};
+   static const char* RST_labels[] = {"00H", "08H", "10H", "18H","20H", "28H", "30H", "38H"};
 
    char immediate8[3];
    char sp_plus_immediate8[6];
@@ -165,6 +166,8 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
       switch (op.val)
       {
          op.label = "CB op";
+
+
       }
       break;
    case 0xCD:
@@ -377,7 +380,6 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
             op.carry = "C";
             break;
          }
-
          break;
       case 0b11:
          switch (op.m00000111)
@@ -453,6 +455,12 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
             op.cycles2 = 3;
             break;
          case 0b101:
+            op.label = "PUSH";
+            op.cycles = 4;
+            if (op.r2 == 0b11)
+               op.operand0 = "AF";
+            else
+               op.operand0 = reg16_names[op.r2];
             break;
          case 0b110:
             op.operand0 = "A";
@@ -513,6 +521,9 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
             }
             break;
          case 0b111:
+            op.label = "RST";
+            op.cycles = 4;
+            op.operand0 = RST_labels[op.r0];
             break;
          }
          break;
@@ -532,16 +543,17 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
    if (op.label)
    {
       printf(" %i", op.cycles);
+
       if (op.cycles2)
          printf("|%i", op.cycles2);
       else
          printf("  ");
 
-      printf(" (%s %s %s %s)  %s",
-             op.zero, op.negative, op.halfcarry, op.carry,
-             op.label);
+      printf(" (%s %s %s %s)  %s", op.zero, op.negative, op.halfcarry, op.carry, op.label);
+
       if (op.operand0)
          printf(" %s", op.operand0);
+
       if (op.operand1)
          printf(", %s", op.operand1);
    }
