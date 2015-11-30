@@ -59,8 +59,25 @@ next_instruction:
    case 0x39:
       CPU_ADD_rr_rr(REG_HL, REG_SP);
 
-      
-   /* LOAD - STORE */
+   case 0x02:
+      CPU_LD_raddr_r(REG_BC, REG_A);
+   case 0x0A:
+      CPU_LD_r_raddr(REG_A, REG_BC);
+   case 0x12:
+      CPU_LD_raddr_r(REG_DE, REG_A);
+   case 0x1A:
+      CPU_LD_r_raddr(REG_A, REG_DE);
+   case 0x22:
+      CPU_LD_raddr_r(REG_HL++, REG_A);
+   case 0x2A:
+      CPU_LD_r_raddr(REG_A, REG_HL++);
+   case 0x32:
+      CPU_LD_raddr_r(REG_HL--, REG_A);
+   case 0x3A:
+      CPU_LD_r_raddr(REG_A, REG_HL--);
+
+
+
    // LD r, d8
    case 0x06:
       CPU_LD_r_imm8(REG_B);
@@ -221,15 +238,6 @@ next_instruction:
       CPU.cycles += 3;
       goto next_instruction;
       
-   // LD A, (r)
-   case 0x0A:
-      CPU.A = GB.MEMORY[CPU.BC];
-      CPU.cycles += 2;
-      goto next_instruction;
-   case 0x1A:
-      CPU.A = GB.MEMORY[CPU.DE];
-      CPU.cycles += 2;
-      goto next_instruction;
    case 0xFA:
    {
       uint16_t addr = GB.MEMORY[CPU.PC++];
@@ -239,13 +247,6 @@ next_instruction:
       goto next_instruction;
    }
    
-   // LD (rr), A
-   case 0x02:
-      GB.MEMORY[CPU.BC] = CPU.A;
-      CPU.cycles += 2;
-   case 0x12:
-      GB.MEMORY[CPU.DE] = CPU.A;
-      CPU.cycles += 2;
    case 0xEA:
    {
       uint16_t addr = GB.MEMORY[CPU.PC++];
@@ -262,26 +263,6 @@ next_instruction:
    // LD (C), A
    case 0xE2:
       GB.MEMORY[CPU.C | 0xFF00] = CPU.A;
-      CPU.cycles += 2;
-      goto next_instruction;
-   // LD A, (HL-)
-   case 0x3A:
-      CPU.A = GB.MEMORY[CPU.HL--];
-      CPU.cycles += 2;
-      goto next_instruction;
-   // LD (HL-), A
-   case 0x32:
-      GB.MEMORY[CPU.HL--] = CPU.A;
-      CPU.cycles += 2;
-      goto next_instruction;
-   // LD A, (HL+)
-   case 0x2A:
-      CPU.A = GB.MEMORY[CPU.HL++];
-      CPU.cycles += 2;
-      goto next_instruction;
-   // LD (HL+), A
-   case 0x22:
-      GB.MEMORY[CPU.HL++] = CPU.A;
       CPU.cycles += 2;
       goto next_instruction;
       
