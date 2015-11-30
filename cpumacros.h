@@ -1,0 +1,132 @@
+#ifndef CPUMACROS_H
+#define CPUMACROS_H
+
+//#include "cpu.h"
+//gbemu_cpu_t CPU;
+
+#define GB_READ_U8(addr)         GB.MEMORY[addr]
+#define GB_READ_S8(addr)         GB.sMEMORY[addr]
+#define GB_WRITE_U8(addr, val)   GB.MEMORY[addr] = val
+
+#define REG_A CPU.A
+#define REG_F CPU.F
+#define REG_B CPU.B
+#define REG_C CPU.C
+#define REG_D CPU.D
+#define REG_E CPU.E
+#define REG_H CPU.H
+#define REG_L CPU.L
+#define REG_BC CPU.BC
+#define REG_DE CPU.DE
+#define REG_HL CPU.HL
+#define REG_SP CPU.SP
+#define REG_PC CPU.PC
+
+#define CPU_FLAG_Z  CPU.FZ
+#define CPU_FLAG_NZ !CPU.FZ
+#define CPU_FLAG_C  CPU.C
+#define CPU_FLAG_NC !CPU.C
+#define CPU_FLAG_ALWAYS 1
+
+#define CPU_cycles_inc()      CPU.cycles ++
+#define CPU_cycles_add(count) CPU.cycles += count
+#define CPU_exec_next()       goto next_instruction
+
+#define CPU_LD_r_imm8(reg) \
+   reg = GB_READ_U8(REG_PC++);\
+   CPU_cycles_add(2);\
+   CPU_exec_next()
+
+#define CPU_LD_rr_imm16(reg) \
+   do{\
+      uint16_t val = GB_READ_U8(REG_PC++);\
+      val |= GB_READ_U8(REG_PC++) << 8;\
+      reg = val;\
+      CPU_cycles_add(3);\
+      CPU_exec_next();\
+   }while(0)
+
+#define CPU_LD_addr16_r(reg, cycles) \
+   do{\
+      uint16_t addr = GB_READ_U8(REG_PC++);\
+      addr |= GB_READ_U8(REG_PC++) << 8;\
+      GB_WRITE_U8(addr, reg);\
+      CPU_cycles_add(cycles);\
+      CPU_exec_next();\
+   }while(0)
+
+#define CPU_LD_addr16_SP() CPU_LD_addr16_r(REG_SP, 5)
+
+
+#define CPU_LD_r0_r1(reg0, reg1) \
+   reg0 = reg1;\
+   CPU_cycles_inc();\
+   CPU_exec_next()
+
+#define CPU_LD_r_raddr(reg, reg_addr) \
+   reg = GB_READ_U8(reg_addr);\
+   CPU_cycles_add(2);\
+   CPU_exec_next()
+
+#define CPU_LD_raddr_r(reg_addr, reg) \
+   GB_WRITE_U8(reg_addr, reg);\
+   CPU_cycles_add(2);\
+   CPU_exec_next()
+
+
+#define CPU_JP_addr8(cond) \
+   do\
+   {\
+      if(cond)\
+      {\
+         REG_PC += GB_READ_S8(REG_PC) + 1;\
+         CPU_cycles_add(3);\
+      }\
+      else\
+      {\
+         REG_PC++;\
+         CPU_cycles_add(2);\
+      }\
+   }while(0)
+
+/* ALU */
+
+//#define CPU_ADD_r_r(reg0, reg1) \
+//   do{\
+//      uint16_t val = reg1;\
+//      unsigned sum = reg0 + val;\
+//      CPU.FH = (reg0 ^ val ^ sum) >> 4;\
+//      reg0   = sum;\
+//      CPU.FZ = !reg0;\
+//      CPU.FN = 0;\
+//      CPU.FC = sum >> 8;\
+//      CPU_cycles_inc();\
+//      CPU_exec_next();\
+//   }while(0)
+
+#define CPU_ADD_rr_rr(reg0, reg1) \
+   do{\
+      uint16_t val = reg1;\
+      unsigned sum = reg0 + val;\
+      CPU.FH = (reg0 ^ val ^ sum) >> 12;\
+      reg0   = sum;\
+      CPU.FN = 0;\
+      CPU.FC = sum >> 16;\
+      CPU_cycles_add(2);\
+      CPU_exec_next();\
+   }while(0)
+
+
+/* MISC */
+#define CPU_NOP() \
+   CPU_cycles_inc();\
+   CPU_exec_next()
+
+/* incomplete : */
+
+#define CPU_STOP() \
+   CPU_cycles_inc();\
+   CPU_exec_next()
+
+
+#endif // CPUMACROS_H
