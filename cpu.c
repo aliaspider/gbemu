@@ -467,6 +467,74 @@ next_instruction:
    case 0x9F:
       CPU_SBC_r_r(REG_A, REG_A);
 
+   case 0xA0:
+      CPU_AND_A_r(REG_B);
+   case 0xA1:
+      CPU_AND_A_r(REG_C);
+   case 0xA2:
+      CPU_AND_A_r(REG_D);
+   case 0xA3:
+      CPU_AND_A_r(REG_E);
+   case 0xA4:
+      CPU_AND_A_r(REG_H);
+   case 0xA5:
+      CPU_AND_A_r(REG_L);
+   case 0xA6:
+      CPU_AND_A_raddr(REG_HL);
+   case 0xA7:
+      CPU_AND_A_r(REG_A);
+
+   case 0xA8:
+      CPU_XOR_A_r(REG_B);
+   case 0xA9:
+      CPU_XOR_A_r(REG_C);
+   case 0xAA:
+      CPU_XOR_A_r(REG_D);
+   case 0xAB:
+      CPU_XOR_A_r(REG_E);
+   case 0xAC:
+      CPU_XOR_A_r(REG_H);
+   case 0xAD:
+      CPU_XOR_A_r(REG_L);
+   case 0xAE:
+      CPU_XOR_A_raddr(REG_HL);
+   case 0xAF:
+      CPU_XOR_A_r(REG_A);
+
+   case 0xB0:
+      CPU_OR_A_r(REG_B);
+   case 0xB1:
+      CPU_OR_A_r(REG_C);
+   case 0xB2:
+      CPU_OR_A_r(REG_D);
+   case 0xB3:
+      CPU_OR_A_r(REG_E);
+   case 0xB4:
+      CPU_OR_A_r(REG_H);
+   case 0xB5:
+      CPU_OR_A_r(REG_L);
+   case 0xB6:
+      CPU_OR_A_raddr(REG_HL);
+   case 0xB7:
+      CPU_OR_A_r(REG_A);
+
+   case 0xB8:
+      CPU_CP_A_r(REG_B);
+   case 0xB9:
+      CPU_CP_A_r(REG_C);
+   case 0xBA:
+      CPU_CP_A_r(REG_D);
+   case 0xBB:
+      CPU_CP_A_r(REG_E);
+   case 0xBC:
+      CPU_CP_A_r(REG_H);
+   case 0xBD:
+      CPU_CP_A_r(REG_L);
+   case 0xBE:
+      CPU_CP_A_raddr(REG_HL);
+   case 0xBF:
+      CPU_CP_A_r(REG_A);
+
    /*******/
 
    case 0xC6:

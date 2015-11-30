@@ -214,6 +214,82 @@
       CPU_exec_next();\
    }while(0)
 
+#define CPU_AND_A_r(reg) \
+   REG_A &= reg;\
+   CPU_FLAG_Z = !REG_A;\
+   CPU_FLAG_N = 0;\
+   CPU_FLAG_H = 1;\
+   CPU_FLAG_C = 0;\
+   CPU_cycles_inc();\
+   CPU_exec_next()
+
+#define CPU_AND_A_raddr(reg_addr) \
+   REG_A &= GB_READ_U8(reg_addr);\
+   CPU_FLAG_Z = !REG_A;\
+   CPU_FLAG_N = 0;\
+   CPU_FLAG_H = 1;\
+   CPU_FLAG_C = 0;\
+   CPU_cycles_inc();\
+   CPU_exec_next();
+
+#define CPU_XOR_A_r(reg) \
+   REG_A ^= reg;\
+   CPU_FLAG_Z = !REG_A;\
+   CPU_FLAG_N = 0;\
+   CPU_FLAG_H = 0;\
+   CPU_FLAG_C = 0;\
+   CPU_cycles_inc();\
+   CPU_exec_next();
+
+#define CPU_XOR_A_raddr(reg_addr) \
+   REG_A ^= GB_READ_U8(reg_addr);\
+   CPU_FLAG_Z = !REG_A;\
+   CPU_FLAG_N = 0;\
+   CPU_FLAG_H = 0;\
+   CPU_FLAG_C = 0;\
+   CPU_cycles_inc();\
+   CPU_exec_next();
+
+#define CPU_OR_A_r(reg) \
+   REG_A |= reg;\
+   CPU_FLAG_Z = !REG_A;\
+   CPU_FLAG_N = 0;\
+   CPU_FLAG_H = 0;\
+   CPU_FLAG_C = 0;\
+   CPU_cycles_inc();\
+   CPU_exec_next();
+
+#define CPU_OR_A_raddr(reg_addr) \
+   REG_A |= GB_READ_U8(reg_addr);\
+   CPU_FLAG_Z = !REG_A;\
+   CPU_FLAG_N = 0;\
+   CPU_FLAG_H = 0;\
+   CPU_FLAG_C = 0;\
+   CPU_cycles_inc();\
+   CPU_exec_next();
+
+#define CPU_CP_A_r(reg) \
+   do {\
+   uint8_t val = reg;\
+   CPU_FLAG_H = (val & 0xF) > (REG_A & 0xF);\
+   CPU_FLAG_C = val > REG_A;\
+   CPU_FLAG_Z = val == REG_A;\
+   CPU_FLAG_N = 1;\
+   CPU_cycles_inc();\
+   CPU_exec_next();\
+   }while(0)
+
+#define CPU_CP_A_raddr(reg_addr) \
+   do {\
+   uint8_t val = GB_READ_U8(reg_addr);\
+   CPU_FLAG_H = (val & 0xF) > (REG_A & 0xF);\
+   CPU_FLAG_C = val > REG_A;\
+   CPU_FLAG_Z = val == REG_A;\
+   CPU_FLAG_N = 1;\
+   CPU_cycles_add(2);\
+   CPU_exec_next();\
+   }while(0)
+
 #define CPU_INC_r(reg) \
    reg++;\
    CPU_cycles_inc();\
