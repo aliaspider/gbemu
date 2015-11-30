@@ -127,7 +127,6 @@ next_instruction:
    case 0x3D:
       CPU_DEC_r(REG_A);
 
-      // LD r, d8
    case 0x06:
       CPU_LD_r_imm8(REG_B);
    case 0x0E:
@@ -142,6 +141,23 @@ next_instruction:
       CPU_LD_r_imm8(REG_L);
    case 0x3E:
       CPU_LD_r_imm8(REG_A);
+
+   case 0x07:
+      CPU_RLCA();
+   case 0x0F:
+      CPU_RRCA();
+   case 0x17:
+      CPU_RLA();
+   case 0x1F:
+      CPU_RRA();
+   case 0x27:
+      CPU_DAA();
+   case 0x2F:
+      CPU_CPL();
+   case 0x37:
+      CPU_SCF();
+   case 0x3F:
+      CPU_CCF();
       
    // LD r1, r2
    case 0x40:

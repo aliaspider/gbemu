@@ -172,6 +172,117 @@
    CPU_cycles_add(2);\
    CPU_exec_next();
 
+
+#define CPU_RLCA() \
+   REG_A = (REG_A << 1) | (REG_A >> 7);\
+   CPU_FLAG_C = REG_A;\
+   CPU_FLAG_Z = 0;\
+   CPU_FLAG_N = 0;\
+   CPU_FLAG_H = 0;\
+   CPU_cycles_inc();\
+   CPU_exec_next();
+
+#define CPU_RRCA() \
+   CPU_FLAG_C = REG_A;\
+   REG_A = (REG_A >> 1) | (REG_A << 7);\
+   CPU_FLAG_Z = 0;\
+   CPU_FLAG_N = 0;\
+   CPU_FLAG_H = 0;\
+   CPU_cycles_inc();\
+   CPU_exec_next();
+
+#define CPU_RLA() \
+   do {\
+   unsigned val = (REG_A << 1) | CPU_FLAG_C;\
+   REG_A = val;\
+   CPU_FLAG_C = val >> 8;\
+   CPU_FLAG_Z = 0;\
+   CPU_FLAG_N = 0;\
+   CPU_FLAG_H = 0;\
+   CPU_cycles_inc();\
+   CPU_exec_next();\
+   }while(0)
+
+#define CPU_RRA() \
+   do {\
+   unsigned val = (REG_A >> 1) | (CPU_FLAG_C << 7);\
+   CPU_FLAG_C = REG_A;\
+   REG_A = val;\
+   CPU_FLAG_Z = 0;\
+   CPU_FLAG_N = 0;\
+   CPU_FLAG_H = 0;\
+   CPU_cycles_inc();\
+   CPU_exec_next();\
+   }while(0)
+
+#define CPU_DAA() \
+   do{\
+      unsigned low = REG_A & 0xF;\
+      unsigned high = REG_A >> 4;\
+      if(CPU_FLAG_N)\
+      {\
+         if(CPU_FLAG_H)\
+         {\
+            low -= 0x6;\
+            high++;\
+         }\
+         if(CPU_FLAG_C)\
+         {\
+            high -= 0x6;\
+         }\
+      }\
+      else\
+      {\
+         if(CPU_FLAG_H)\
+         {\
+            low += 0x6;\
+            high--;\
+         }\
+         if(low > 0x9)\
+         {\
+            low -= 0x9;\
+            high++;\
+         }\
+         if(CPU_FLAG_C)\
+         {\
+            high += 0x6;\
+         }\
+         if(high > 0x9)\
+         {\
+            high -= 0x9;\
+            CPU_FLAG_C = 1;\
+         }\
+      }\
+      REG_A = low | high << 4;\
+      CPU_FLAG_Z = !REG_A;\
+      CPU_FLAG_H = 0;\
+      CPU_cycles_inc();\
+      CPU_exec_next();\
+   }while(0)
+
+
+#define CPU_CPL() \
+   REG_A ^= 0xFF;\
+   CPU_FLAG_N = 1;\
+   CPU_FLAG_H = 1;\
+   CPU_cycles_inc();\
+   CPU_exec_next();
+
+#define CPU_SCF() \
+   CPU_FLAG_N = 0;\
+   CPU_FLAG_H = 0;\
+   CPU_FLAG_C = 1;\
+   CPU_cycles_inc();\
+   CPU_exec_next();
+
+#define CPU_CCF() \
+   CPU_FLAG_N = 0;\
+   CPU_FLAG_H = 0;\
+   CPU_FLAG_C ^= 1;\
+   CPU_cycles_inc();\
+   CPU_exec_next();
+
+
 /* MISC */
 #define CPU_NOP() \
    CPU_cycles_inc();\
