@@ -24,8 +24,14 @@
 
 #define CPU_FLAG_Z  CPU.FZ
 #define CPU_FLAG_NZ !CPU.FZ
+
+#define CPU_FLAG_N  CPU.FN
+
+#define CPU_FLAG_H  CPU.FH
+
 #define CPU_FLAG_C  CPU.C
 #define CPU_FLAG_NC !CPU.C
+
 #define CPU_FLAG_ALWAYS 1
 
 #define CPU_cycles_inc()      CPU.cycles ++
@@ -116,6 +122,55 @@
       CPU_exec_next();\
    }while(0)
 
+#define CPU_INC_r(reg) \
+   reg++;\
+   CPU_cycles_inc();\
+   CPU_FLAG_Z = !reg;\
+   CPU_FLAG_N = 0;\
+   CPU_FLAG_H = !(reg & 0xF);\
+   CPU_exec_next();
+
+#define CPU_DEC_r(reg) \
+   CPU_FLAG_H = !(reg & 0xF);\
+   reg--;\
+   CPU_cycles_inc();\
+   CPU_FLAG_Z = !reg;\
+   CPU_FLAG_N = 1;\
+   CPU_exec_next();
+
+#define CPU_INC_raddr(reg) \
+   do{\
+   uint8_t val = GB_READ_U8(reg);\
+   val++;\
+   GB_WRITE_U8(reg, val);\
+   CPU_cycles_add(3);\
+   CPU_FLAG_Z = !val;\
+   CPU_FLAG_N = 0;\
+   CPU_FLAG_H = !(val & 0xF);\
+   CPU_exec_next();\
+   }while(0)
+
+#define CPU_DEC_raddr(reg) \
+   do{\
+   uint8_t val = GB_READ_U8(reg);\
+   CPU_FLAG_H = !(val & 0xF);\
+   val--;\
+   GB_WRITE_U8(reg, val);\
+   CPU_cycles_add(3);\
+   CPU_FLAG_Z = !val;\
+   CPU_FLAG_N = 1;\
+   CPU_exec_next();\
+   }while(0)
+
+#define CPU_INC_rr(reg) \
+   reg++;\
+   CPU_cycles_add(2);\
+   CPU_exec_next();
+
+#define CPU_DEC_rr(reg) \
+   reg--;\
+   CPU_cycles_add(2);\
+   CPU_exec_next();
 
 /* MISC */
 #define CPU_NOP() \

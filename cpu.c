@@ -76,9 +76,58 @@ next_instruction:
    case 0x3A:
       CPU_LD_r_raddr(REG_A, REG_HL--);
 
+   case 0x03:
+      CPU_INC_rr(REG_BC);
+   case 0x0B:
+      CPU_DEC_rr(REG_BC);
+   case 0x13:
+      CPU_INC_rr(REG_DE);
+   case 0x1B:
+      CPU_DEC_rr(REG_DE);
+   case 0x23:
+      CPU_INC_rr(REG_HL);
+   case 0x2B:
+      CPU_DEC_rr(REG_HL);
+   case 0x33:
+      CPU_INC_rr(REG_SP);
+   case 0x3B:
+      CPU_DEC_rr(REG_SP);
 
+   case 0x04:
+      CPU_INC_r(REG_B);
+   case 0x0C:
+      CPU_INC_r(REG_C);
+   case 0x14:
+      CPU_INC_r(REG_D);
+   case 0x1C:
+      CPU_INC_r(REG_E);
+   case 0x24:
+      CPU_INC_r(REG_H);
+   case 0x2C:
+      CPU_INC_r(REG_L);
+   case 0x34:
+      CPU_INC_raddr(REG_HL);
+   case 0x3C:
+      CPU_INC_r(REG_A);
 
-   // LD r, d8
+   case 0x05:
+      CPU_DEC_r(REG_B);
+   case 0x0D:
+      CPU_DEC_r(REG_C);
+   case 0x15:
+      CPU_DEC_r(REG_D);
+   case 0x1D:
+      CPU_DEC_r(REG_E);
+   case 0x25:
+      CPU_DEC_r(REG_H);
+   case 0x2D:
+      CPU_DEC_r(REG_L);
+   case 0x35:
+      CPU_DEC_raddr(REG_HL);
+   case 0x3D:
+      CPU_DEC_r(REG_A);
+
+      // LD r, d8
    case 0x06:
       CPU_LD_r_imm8(REG_B);
    case 0x0E:
