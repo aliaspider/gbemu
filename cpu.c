@@ -14,8 +14,8 @@ void gbemu_cpu_run(int cycles)
 next_instruction:
    if (CPU.cycles > cycles)
       return;
-   gbemu_dump_state(&CPU);
-   gbemu_disasm_current(&CPU);
+//   gbemu_dump_state(&CPU);
+//   gbemu_disasm_current(&CPU);
 
    switch (GB.MEMORY[CPU.PC++])
    {
@@ -494,6 +494,24 @@ next_instruction:
    case 0xF5:
       CPU_PUSH_AF();
 
+
+   case 0xC6:
+      CPU_ADD_r_imm8(REG_A);
+   case 0xCE:
+      CPU_ADC_r_imm8(REG_A);
+   case 0xD6:
+      CPU_SUB_r_imm8(REG_A);
+   case 0xDE:
+      CPU_SBC_r_imm8(REG_A);
+   case 0xE6:
+      CPU_AND_A_imm8();
+   case 0xEE:
+      CPU_XOR_A_imm8();
+   case 0xF6:
+      CPU_OR_A_imm8();
+   case 0xFE:
+      CPU_CP_A_imm8();
+
    case 0xFA:
    {
       uint16_t addr = GB.MEMORY[CPU.PC++];
@@ -528,61 +546,292 @@ next_instruction:
       CPU.cycles += 2;
       goto next_instruction;
 
-   case 0xC6:
+   case 0xCB:
    {
-      uint8_t val = GB.MEMORY[CPU.PC++];
-      unsigned sum = CPU.A + val;
-      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
-      CPU.A = sum;
-      CPU.FZ = !CPU.A;
-      CPU.FN = 0;
-      CPU.FC = sum >> 8;
-      CPU.cycles += 2;
-      goto next_instruction;
-   }
+      switch (GB.MEMORY[CPU.PC++])
+      {
+      case 0x80:
+         CPU_RES(0, REG_B);
+      case 0x81:
+         CPU_RES(0, REG_C);
+      case 0x82:
+         CPU_RES(0, REG_D);
+      case 0x83:
+         CPU_RES(0, REG_E);
+      case 0x84:
+         CPU_RES(0, REG_H);
+      case 0x85:
+         CPU_RES(0, REG_L);
+      case 0x86:
+         CPU_RES_HL(0);
+      case 0x87:
+         CPU_RES(0, REG_A);
 
-   case 0xCE:
-   {
-      uint8_t val = GB.MEMORY[CPU.PC++] + CPU.FC;
-      unsigned sum = CPU.A + val;
-      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
-      CPU.A = sum;
-      CPU.FZ = !CPU.A;
-      CPU.FN = 0;
-      CPU.FC = sum >> 8;
-      CPU.cycles += 2;
-      goto next_instruction;
-   }
+      case 0x88:
+         CPU_RES(1, REG_B);
+      case 0x89:
+         CPU_RES(1, REG_C);
+      case 0x8A:
+         CPU_RES(1, REG_D);
+      case 0x8B:
+         CPU_RES(1, REG_E);
+      case 0x8C:
+         CPU_RES(1, REG_H);
+      case 0x8D:
+         CPU_RES(1, REG_L);
+      case 0x8E:
+         CPU_RES_HL(1);
+      case 0x8F:
+         CPU_RES(1, REG_A);
 
-   case 0xD6:
-   {
-      uint8_t val = GB.MEMORY[CPU.PC++];
-      unsigned sum = CPU.A + val;
-      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
-      CPU.A = sum;
-      CPU.FZ = !CPU.A;
-      CPU.FN = 0;
-      CPU.FC = sum >> 8;
-      CPU.cycles += 2;
-      goto next_instruction;
-   }
+      case 0x90:
+         CPU_RES(2, REG_B);
+      case 0x91:
+         CPU_RES(2, REG_C);
+      case 0x92:
+         CPU_RES(2, REG_D);
+      case 0x93:
+         CPU_RES(2, REG_E);
+      case 0x94:
+         CPU_RES(2, REG_H);
+      case 0x95:
+         CPU_RES(2, REG_L);
+      case 0x96:
+         CPU_RES_HL(2);
+      case 0x97:
+         CPU_RES(2, REG_A);
 
-   case 0xDE:
-   {
-      uint8_t val = GB.MEMORY[CPU.PC++] + CPU.FC;
-      unsigned sum = CPU.A + val;
-      CPU.FH = (CPU.A ^ val ^ sum) >> 4;
-      CPU.A = sum;
-      CPU.FZ = !CPU.A;
-      CPU.FN = 0;
-      CPU.FC = sum >> 8;
-      CPU.cycles += 2;
-      goto next_instruction;
+      case 0x98:
+         CPU_RES(3, REG_B);
+      case 0x99:
+         CPU_RES(3, REG_C);
+      case 0x9A:
+         CPU_RES(3, REG_D);
+      case 0x9B:
+         CPU_RES(3, REG_E);
+      case 0x9C:
+         CPU_RES(3, REG_H);
+      case 0x9D:
+         CPU_RES(3, REG_L);
+      case 0x9E:
+         CPU_RES_HL(3);
+      case 0x9F:
+         CPU_RES(3, REG_A);
+
+      case 0xA0:
+         CPU_RES(4, REG_B);
+      case 0xA1:
+         CPU_RES(4, REG_C);
+      case 0xA2:
+         CPU_RES(4, REG_D);
+      case 0xA3:
+         CPU_RES(4, REG_E);
+      case 0xA4:
+         CPU_RES(4, REG_H);
+      case 0xA5:
+         CPU_RES(4, REG_L);
+      case 0xA6:
+         CPU_RES_HL(4);
+      case 0xA7:
+         CPU_RES(4, REG_A);
+
+      case 0xA8:
+         CPU_RES(5, REG_B);
+      case 0xA9:
+         CPU_RES(5, REG_C);
+      case 0xAA:
+         CPU_RES(5, REG_D);
+      case 0xAB:
+         CPU_RES(5, REG_E);
+      case 0xAC:
+         CPU_RES(5, REG_H);
+      case 0xAD:
+         CPU_RES(5, REG_L);
+      case 0xAE:
+         CPU_RES_HL(5);
+      case 0xAF:
+         CPU_RES(5, REG_A);
+
+      case 0xB0:
+         CPU_RES(6, REG_B);
+      case 0xB1:
+         CPU_RES(6, REG_C);
+      case 0xB2:
+         CPU_RES(6, REG_D);
+      case 0xB3:
+         CPU_RES(6, REG_E);
+      case 0xB4:
+         CPU_RES(6, REG_H);
+      case 0xB5:
+         CPU_RES(6, REG_L);
+      case 0xB6:
+         CPU_RES_HL(6);
+      case 0xB7:
+         CPU_RES(6, REG_A);
+
+      case 0xB8:
+         CPU_RES(7, REG_B);
+      case 0xB9:
+         CPU_RES(7, REG_C);
+      case 0xBA:
+         CPU_RES(7, REG_D);
+      case 0xBB:
+         CPU_RES(7, REG_E);
+      case 0xBC:
+         CPU_RES(7, REG_H);
+      case 0xBD:
+         CPU_RES(7, REG_L);
+      case 0xBE:
+         CPU_RES_HL(7);
+      case 0xBF:
+         CPU_RES(7, REG_A);
+
+      case 0xC0:
+         CPU_SET(0, REG_B);
+      case 0xC1:
+         CPU_SET(0, REG_C);
+      case 0xC2:
+         CPU_SET(0, REG_D);
+      case 0xC3:
+         CPU_SET(0, REG_E);
+      case 0xC4:
+         CPU_SET(0, REG_H);
+      case 0xC5:
+         CPU_SET(0, REG_L);
+      case 0xC6:
+         CPU_SET_HL(0);
+      case 0xC7:
+         CPU_SET(0, REG_A);
+
+      case 0xC8:
+         CPU_SET(1, REG_B);
+      case 0xC9:
+         CPU_SET(1, REG_C);
+      case 0xCA:
+         CPU_SET(1, REG_D);
+      case 0xCB:
+         CPU_SET(1, REG_E);
+      case 0xCC:
+         CPU_SET(1, REG_H);
+      case 0xCD:
+         CPU_SET(1, REG_L);
+      case 0xCE:
+         CPU_SET_HL(1);
+      case 0xCF:
+         CPU_SET(1, REG_A);
+
+      case 0xD0:
+         CPU_SET(2, REG_B);
+      case 0xD1:
+         CPU_SET(2, REG_C);
+      case 0xD2:
+         CPU_SET(2, REG_D);
+      case 0xD3:
+         CPU_SET(2, REG_E);
+      case 0xD4:
+         CPU_SET(2, REG_H);
+      case 0xD5:
+         CPU_SET(2, REG_L);
+      case 0xD6:
+         CPU_SET_HL(2);
+      case 0xD7:
+         CPU_SET(2, REG_A);
+
+      case 0xD8:
+         CPU_SET(3, REG_B);
+      case 0xD9:
+         CPU_SET(3, REG_C);
+      case 0xDA:
+         CPU_SET(3, REG_D);
+      case 0xDB:
+         CPU_SET(3, REG_E);
+      case 0xDC:
+         CPU_SET(3, REG_H);
+      case 0xDD:
+         CPU_SET(3, REG_L);
+      case 0xDE:
+         CPU_SET_HL(3);
+      case 0xDF:
+         CPU_SET(3, REG_A);
+
+      case 0xE0:
+         CPU_SET(4, REG_B);
+      case 0xE1:
+         CPU_SET(4, REG_C);
+      case 0xE2:
+         CPU_SET(4, REG_D);
+      case 0xE3:
+         CPU_SET(4, REG_E);
+      case 0xE4:
+         CPU_SET(4, REG_H);
+      case 0xE5:
+         CPU_SET(4, REG_L);
+      case 0xE6:
+         CPU_SET_HL(4);
+      case 0xE7:
+         CPU_SET(4, REG_A);
+
+      case 0xE8:
+         CPU_SET(5, REG_B);
+      case 0xE9:
+         CPU_SET(5, REG_C);
+      case 0xEA:
+         CPU_SET(5, REG_D);
+      case 0xEB:
+         CPU_SET(5, REG_E);
+      case 0xEC:
+         CPU_SET(5, REG_H);
+      case 0xED:
+         CPU_SET(5, REG_L);
+      case 0xEE:
+         CPU_SET_HL(5);
+      case 0xEF:
+         CPU_SET(5, REG_A);
+
+      case 0xF0:
+         CPU_SET(6, REG_B);
+      case 0xF1:
+         CPU_SET(6, REG_C);
+      case 0xF2:
+         CPU_SET(6, REG_D);
+      case 0xF3:
+         CPU_SET(6, REG_E);
+      case 0xF4:
+         CPU_SET(6, REG_H);
+      case 0xF5:
+         CPU_SET(6, REG_L);
+      case 0xF6:
+         CPU_SET_HL(6);
+      case 0xF7:
+         CPU_SET(6, REG_A);
+
+      case 0xF8:
+         CPU_SET(7, REG_B);
+      case 0xF9:
+         CPU_SET(7, REG_C);
+      case 0xFA:
+         CPU_SET(7, REG_D);
+      case 0xFB:
+         CPU_SET(7, REG_E);
+      case 0xFC:
+         CPU_SET(7, REG_H);
+      case 0xFD:
+         CPU_SET(7, REG_L);
+      case 0xFE:
+         CPU_SET_HL(7);
+      case 0xFF:
+         CPU_SET(7, REG_A);
+
+      default:
+         goto unknown_opcode;
+
+      }
    }
 
 
    
    default:
+   unknown_opcode:
       retro_sleep(10);
       printf("unknown opcode : 0x%02X\n", GB.MEMORY[CPU.PC - 1]);
       fflush(stdout);

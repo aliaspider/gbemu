@@ -175,6 +175,8 @@
    CPU_exec_next();\
    }while(0)
 
+#define CPU_ADD_r_imm8(reg) CPU_ADD_r_raddr(reg, REG_PC++)
+
 #define CPU_ADC_r_r(reg0, reg1) \
    do {\
    uint8_t val = reg1 + CPU_FLAG_C;\
@@ -201,6 +203,8 @@
    CPU_exec_next();\
    }while(0)
 
+#define CPU_ADC_r_imm8(reg) CPU_ADC_r_raddr(reg, REG_PC++)
+
 #define CPU_SUB_r_r(reg0, reg1) \
    do {\
    uint8_t val = reg1;\
@@ -225,6 +229,8 @@
    CPU_exec_next();\
    }while(0)
 
+#define CPU_SUB_r_imm8(reg) CPU_SUB_r_raddr(reg, REG_PC++)
+
 #define CPU_SBC_r_r(reg0, reg1) \
    do {\
    uint8_t val = reg1 + CPU_FLAG_C;\
@@ -248,6 +254,8 @@
    CPU_cycles_add(2);\
    CPU_exec_next();\
    }while(0)
+
+#define CPU_SBC_r_imm8(reg) CPU_SBC_r_raddr(reg, REG_PC++)
 
 #define CPU_ADD_rr_rr(reg0, reg1) \
    do{\
@@ -279,6 +287,8 @@
    CPU_cycles_inc();\
    CPU_exec_next();
 
+#define CPU_AND_A_imm8() CPU_AND_A_raddr(REG_PC++)
+
 #define CPU_XOR_A_r(reg) \
    REG_A ^= reg;\
    CPU_FLAG_Z = !REG_A;\
@@ -297,6 +307,8 @@
    CPU_cycles_inc();\
    CPU_exec_next();
 
+#define CPU_XOR_A_imm8() CPU_XOR_A_raddr(REG_PC++)
+
 #define CPU_OR_A_r(reg) \
    REG_A |= reg;\
    CPU_FLAG_Z = !REG_A;\
@@ -314,6 +326,8 @@
    CPU_FLAG_C = 0;\
    CPU_cycles_inc();\
    CPU_exec_next();
+
+#define CPU_OR_A_imm8() CPU_OR_A_raddr(REG_PC++)
 
 #define CPU_CP_A_r(reg) \
    do {\
@@ -336,6 +350,8 @@
    CPU_cycles_add(2);\
    CPU_exec_next();\
    }while(0)
+
+#define CPU_CP_A_imm8() CPU_CP_A_raddr(REG_PC++)
 
 #define CPU_INC_r(reg) \
    reg++;\
@@ -496,6 +512,36 @@
    CPU_FLAG_C ^= 1;\
    CPU_cycles_inc();\
    CPU_exec_next();
+
+/* CB */
+
+#define CPU_RES(bit, reg) \
+   reg &= ~(1 << bit);\
+   CPU_cycles_add(2);\
+   CPU_exec_next();
+
+#define CPU_RES_HL(bit) \
+   do {\
+      uint8_t val = GB_READ_U8(REG_HL);\
+      val &= ~(1 << bit);\
+      GB_WRITE_U8(REG_HL, val);\
+      CPU_cycles_add(4);\
+      CPU_exec_next();\
+   }while(0)
+
+#define CPU_SET(bit, reg) \
+   reg |= (1 << bit);\
+   CPU_cycles_add(2);\
+   CPU_exec_next();
+
+#define CPU_SET_HL(bit) \
+   do {\
+      uint8_t val = GB_READ_U8(REG_HL);\
+      val |= (1 << bit);\
+      GB_WRITE_U8(REG_HL, val);\
+      CPU_cycles_add(4);\
+      CPU_exec_next();\
+   }while(0)
 
 
 /* control flow */

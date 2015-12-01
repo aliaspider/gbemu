@@ -166,7 +166,7 @@ void retro_run(void)
 
    video_cb(NULL, 160, 144, 320);
 //   DEBUG_HOLD();
-   printf("frame : %i\n", frames++);
+//   printf("frame : %i\n", frames++);
    fflush(stdout);
 }
 

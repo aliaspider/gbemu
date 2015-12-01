@@ -1,6 +1,6 @@
 TARGET_NAME := gbemu
 DEBUG       = 0
-PERF_TEST   = 0
+PERF_TEST   = 1
 
 OBJECTS :=
 OBJECTS += libretro.o
