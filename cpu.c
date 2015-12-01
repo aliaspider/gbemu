@@ -31,15 +31,15 @@ next_instruction:
    case 0x10:
       CPU_STOP();
    case 0x18:
-      CPU_JP_addr8(CPU_FLAG_ALWAYS);
+      CPU_JP_PC_off8(CPU_FLAG_ALWAYS);
    case 0x20:
-      CPU_JP_addr8(CPU_FLAG_NZ);
+      CPU_JP_PC_off8(CPU_FLAG_NZ);
    case 0x28:
-      CPU_JP_addr8(CPU_FLAG_Z);
+      CPU_JP_PC_off8(CPU_FLAG_Z);
    case 0x30:
-      CPU_JP_addr8(CPU_FLAG_NC);
+      CPU_JP_PC_off8(CPU_FLAG_NC);
    case 0x38:
-      CPU_JP_addr8(CPU_FLAG_C);
+      CPU_JP_PC_off8(CPU_FLAG_C);
 
    case 0x01:
       CPU_LD_rr_imm16(REG_BC);
@@ -298,106 +298,6 @@ next_instruction:
    case 0x7F:
       CPU_LD_r0_r1(CPU.A, CPU.A);
 
-   case 0xFA:
-   {
-      uint16_t addr = GB.MEMORY[CPU.PC++];
-      addr |= GB.MEMORY[CPU.PC++] << 8;
-      CPU.A = GB.MEMORY[addr];
-      CPU.cycles += 3;
-      goto next_instruction;
-   }
-   
-   case 0xEA:
-   {
-      uint16_t addr = GB.MEMORY[CPU.PC++];
-      addr |= GB.MEMORY[CPU.PC++] << 8;
-      GB.MEMORY[addr] = CPU.A;
-      CPU.cycles += 4;
-      goto next_instruction;
-   }
-   // LD A,(C)
-   case 0xF2:
-      CPU.A = GB.MEMORY[CPU.C | 0xFF00];
-      CPU.cycles += 2;
-      goto next_instruction;
-   // LD (C), A
-   case 0xE2:
-      GB.MEMORY[CPU.C | 0xFF00] = CPU.A;
-      CPU.cycles += 2;
-      goto next_instruction;
-      
-   // LD A,(d8)
-   case 0xF0:
-      CPU.A = GB.MEMORY[GB.MEMORY[CPU.PC++] | 0xFF00];
-      CPU.cycles += 3;
-      goto next_instruction;
-   // LD (d8), A
-   case 0xE0:
-      GB.MEMORY[GB.MEMORY[CPU.PC++] | 0xFF00] = CPU.A;
-      CPU.cycles += 3;
-      goto next_instruction;
-      
-   // LD SP, HL
-   case 0xF9:
-      CPU.SP = CPU.HL;
-      CPU.cycles += 2;
-      goto next_instruction;
-   // LD HL, SP+n
-   case 0xF8:
-   {
-      int8_t offset = GB.sMEMORY[CPU.PC++];
-      unsigned val = CPU.SP + offset;
-      CPU.HL = (uint16_t)val;
-      CPU.FZ = 0;
-      CPU.FN = 0;
-      CPU.FH = (CPU.SP ^ offset ^ val) >> 4;
-      CPU.FC = val >> 16;
-      CPU.cycles += 3;
-      goto next_instruction;
-   }
-   // PUSH (rr)
-   case 0xC5:
-      GB.MEMORY[--CPU.SP] = CPU.B;
-      GB.MEMORY[--CPU.SP] = CPU.C;
-      CPU.cycles += 4;
-      goto next_instruction;
-   case 0xD5:
-      GB.MEMORY[--CPU.SP] = CPU.D;
-      GB.MEMORY[--CPU.SP] = CPU.E;
-      CPU.cycles += 4;
-      goto next_instruction;
-   case 0xE5:
-      GB.MEMORY[--CPU.SP] = CPU.H;
-      GB.MEMORY[--CPU.SP] = CPU.L;
-      CPU.cycles += 4;
-      goto next_instruction;
-   case 0xF5:
-      GB.MEMORY[--CPU.SP] = CPU.A;
-      GB.MEMORY[--CPU.SP] = CPU.F;
-      CPU.cycles += 4;
-      goto next_instruction;
-   // POP (rr)
-   case 0xC1:
-      CPU.C = GB.MEMORY[CPU.SP++];
-      CPU.B = GB.MEMORY[CPU.SP++];
-      CPU.cycles += 3;
-      goto next_instruction;
-   case 0xD1:
-      CPU.E = GB.MEMORY[CPU.SP++];
-      CPU.D = GB.MEMORY[CPU.SP++];
-      CPU.cycles += 3;
-      goto next_instruction;
-   case 0xE1:
-      CPU.L = GB.MEMORY[CPU.SP++];
-      CPU.H = GB.MEMORY[CPU.SP++];
-      CPU.cycles += 3;
-      goto next_instruction;
-   case 0xF1:
-      CPU.F = GB.MEMORY[CPU.SP++];
-      CPU.A = GB.MEMORY[CPU.SP++];
-      CPU.cycles += 3;
-      goto next_instruction;
-      
    /* ALU */
    case 0x80:
       CPU_ADD_r_r(REG_A, REG_B);
@@ -536,6 +436,80 @@ next_instruction:
       CPU_CP_A_r(REG_A);
 
    /*******/
+   case 0xC0:
+      CPU_RET_cc(CPU_FLAG_NZ);
+   case 0xC8:
+      CPU_RET_cc(CPU_FLAG_Z);
+   case 0xD0:
+      CPU_RET_cc(CPU_FLAG_NC);
+   case 0xD8:
+      CPU_RET_cc(CPU_FLAG_C);
+
+   case 0xE0:
+      CPU_LD_addr8_r(REG_A);
+   case 0xF0:
+      CPU_LD_r_addr8(REG_A);
+   case 0xE8:
+      CPU_ADD_SP_off8();
+   case 0xF8:
+      CPU_LD_HL_SP_off8();
+
+   // POP (rr)
+   case 0xC1:
+      CPU_POP_BC();
+   case 0xD1:
+      CPU_POP_DE();
+   case 0xE1:
+      CPU_POP_HL();
+   case 0xF1:
+      CPU_POP_AF();
+
+
+
+
+   // PUSH (rr)
+   case 0xC5:
+      CPU_PUSH_BC();
+   case 0xD5:
+      CPU_PUSH_DE();
+   case 0xE5:
+      CPU_PUSH_HL();
+   case 0xF5:
+      CPU_PUSH_AF();
+
+   case 0xFA:
+   {
+      uint16_t addr = GB.MEMORY[CPU.PC++];
+      addr |= GB.MEMORY[CPU.PC++] << 8;
+      CPU.A = GB.MEMORY[addr];
+      CPU.cycles += 3;
+      goto next_instruction;
+   }
+
+   case 0xEA:
+   {
+      uint16_t addr = GB.MEMORY[CPU.PC++];
+      addr |= GB.MEMORY[CPU.PC++] << 8;
+      GB.MEMORY[addr] = CPU.A;
+      CPU.cycles += 4;
+      goto next_instruction;
+   }
+   // LD A,(C)
+   case 0xF2:
+      CPU.A = GB.MEMORY[CPU.C | 0xFF00];
+      CPU.cycles += 2;
+      goto next_instruction;
+   // LD (C), A
+   case 0xE2:
+      GB.MEMORY[CPU.C | 0xFF00] = CPU.A;
+      CPU.cycles += 2;
+      goto next_instruction;
+
+   // LD SP, HL
+   case 0xF9:
+      CPU.SP = CPU.HL;
+      CPU.cycles += 2;
+      goto next_instruction;
 
    case 0xC6:
    {

@@ -34,9 +34,10 @@
 
 #define CPU_FLAG_ALWAYS 1
 
-#define CPU_cycles_inc()      CPU.cycles ++
+#define CPU_cycles_inc()      CPU.cycles++
 #define CPU_cycles_add(count) CPU.cycles += count
 #define CPU_exec_next()       goto next_instruction
+#define CPU_enable_int()      CPU.interrupts_enabled = 1
 
 #define CPU_LD_r_imm8(reg) \
    reg = GB_READ_U8(REG_PC++);\
@@ -84,20 +85,66 @@
    CPU_cycles_add(2);\
    CPU_exec_next()
 
+#define CPU_LD_r_addr8(reg) \
+   reg = GB_READ_U8(GB_READ_U8(REG_PC++) | 0xFF00);\
+   CPU_cycles_add(3);\
+   CPU_exec_next();
 
-#define CPU_JP_addr8(cond) \
-   do\
-   {\
-      if(cond)\
-      {\
-         REG_PC += GB_READ_S8(REG_PC) + 1;\
-         CPU_cycles_add(3);\
-      }\
-      else\
-      {\
-         REG_PC++;\
-         CPU_cycles_add(2);\
-      }\
+#define CPU_LD_addr8_r(reg) \
+   GB_WRITE_U8(GB_READ_U8(REG_PC++) | 0xFF00, reg);\
+   CPU_cycles_add(3);\
+   CPU_exec_next();
+
+#define CPU_POP_rr(reg0, reg1) \
+   GB_WRITE_U8(REG_SP++, reg0);\
+   GB_WRITE_U8(REG_SP++, reg1);\
+   CPU_cycles_add(3);\
+   CPU_exec_next();
+
+#define CPU_POP_BC() CPU_POP_rr(REG_C, REG_B)
+#define CPU_POP_DE() CPU_POP_rr(REG_E, REG_D)
+#define CPU_POP_HL() CPU_POP_rr(REG_L, REG_H)
+#define CPU_POP_AF() CPU_POP_rr(REG_F, REG_A)
+
+#define CPU_PUSH_rr(reg0, reg1) \
+   GB_WRITE_U8(--REG_SP, reg0);\
+   GB_WRITE_U8(--REG_SP, reg1);\
+   CPU_cycles_add(4);\
+   CPU_exec_next();
+
+#define CPU_PUSH_BC() CPU_PUSH_rr(REG_B, REG_C)
+#define CPU_PUSH_DE() CPU_PUSH_rr(REG_D, REG_E)
+#define CPU_PUSH_HL() CPU_PUSH_rr(REG_H, REG_L)
+#define CPU_PUSH_AF() CPU_PUSH_rr(REG_A, REG_F)
+
+
+/* todo: correct C/H flag when off8 < 0 */
+#define CPU_ADD_SP_off8() \
+   do {\
+      int8_t offset = GB_READ_S8(REG_PC++);\
+      unsigned val = REG_SP + offset;\
+      REG_HL = (uint16_t)val;\
+      CPU_FLAG_Z = 0;\
+      CPU_FLAG_N = 0;\
+      CPU_FLAG_H = (REG_SP ^ offset ^ val) >> 12;\
+      CPU_FLAG_C = val >> 16;\
+      CPU_cycles_add(4);\
+      CPU_exec_next();\
+   }while(0)
+
+
+/* todo: correct C/H flag when off8 < 0 */
+#define CPU_LD_HL_SP_off8() \
+   do {\
+      int8_t offset = GB_READ_S8(REG_PC++);\
+      unsigned val = REG_SP + offset;\
+      CPU_FLAG_H = (REG_SP ^ offset ^ val) >> 12;\
+      REG_SP = (uint16_t)val;\
+      CPU_FLAG_Z = 0;\
+      CPU_FLAG_N = 0;\
+      CPU_FLAG_C = val >> 16;\
+      CPU_cycles_add(3);\
+      CPU_exec_next();\
    }while(0)
 
 /* ALU */
@@ -449,6 +496,61 @@
    CPU_FLAG_C ^= 1;\
    CPU_cycles_inc();\
    CPU_exec_next();
+
+
+/* control flow */
+#define CPU_JP_PC_off8(cond) \
+   do\
+   {\
+      if(cond)\
+      {\
+         REG_PC += GB_READ_S8(REG_PC) + 1;\
+         CPU_cycles_add(3);\
+      }\
+      else\
+      {\
+         REG_PC++;\
+         CPU_cycles_add(2);\
+      }\
+      CPU_exec_next();\
+   }while(0)
+
+
+#define CPU_RET_cc(cc) \
+   do\
+   {\
+      if(cc)\
+      {\
+         uint8_t addr = GB_READ_U8(REG_SP++);\
+         addr |= GB_READ_U8(REG_SP++) << 8;\
+         REG_PC = addr;\
+         CPU_cycles_add(5);\
+      }\
+      else\
+         CPU_cycles_add(2);\
+      CPU_exec_next();\
+   }while(0)
+
+#define CPU_RET() \
+   do\
+   {\
+      uint8_t addr = GB_READ_U8(REG_SP++);\
+      addr |= GB_READ_U8(REG_SP++) << 8;\
+      REG_PC = addr;\
+      CPU_cycles_add(4);\
+      CPU_exec_next();\
+   }while(0)
+
+#define CPU_RETI() \
+   do\
+   {\
+      uint8_t addr = GB_READ_U8(REG_SP++);\
+      addr |= GB_READ_U8(REG_SP++) << 8;\
+      REG_PC = addr;\
+      CPU_cycles_add(4);\
+      CPU_enable_int();\
+      CPU_exec_next();\
+   }while(0)
 
 
 /* MISC */
