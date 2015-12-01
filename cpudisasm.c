@@ -165,17 +165,17 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
       break;
    case 0xCB:
       op.val = GB.MEMORY[(CPU->PC + 1) & 0xFFFF];
+      op.operand1 = reg_names[op.r1];
       op.size++;
       op.cycles++;
-      if (op.r1 == 0b110)
-         op.cycles += 2;
-      switch (op.m11000000)
-      {
-      op.operand1 = reg_names[op.r1];
       op.zero = "Z";
       op.negative = "0";
       op.halfcarry = "0";
       op.carry = "C";
+      if (op.r1 == 0b110)
+         op.cycles += 2;
+      switch (op.m11000000)
+      {
       case 0b00:
          switch (op.r0)
          {
