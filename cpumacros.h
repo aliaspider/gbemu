@@ -23,16 +23,15 @@
 #define REG_PC CPU.PC
 
 #define CPU_FLAG_Z  CPU.FZ
-#define CPU_FLAG_NZ !CPU.FZ
-
 #define CPU_FLAG_N  CPU.FN
-
 #define CPU_FLAG_H  CPU.FH
-
 #define CPU_FLAG_C  CPU.C
-#define CPU_FLAG_NC !CPU.C
 
-#define CPU_FLAG_ALWAYS 1
+#define CPU_COND_Z  !CPU.FZ
+#define CPU_COND_NZ CPU.FZ
+#define CPU_COND_C  CPU.C
+#define CPU_COND_NC !CPU.C
+#define CPU_COND_ALWAYS 1
 
 #define CPU_cycles_inc()      CPU.cycles++
 #define CPU_cycles_add(count) CPU.cycles += count
