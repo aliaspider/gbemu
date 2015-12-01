@@ -168,10 +168,13 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
       op.operand1 = reg_names[op.r1];
       op.size++;
       op.cycles++;
-      op.zero = "Z";
-      op.negative = "0";
-      op.halfcarry = "0";
-      op.carry = "C";
+      if (!(op.val >> 7))
+      {
+         op.zero = "Z";
+         op.negative = "0";
+         op.halfcarry = "0";
+         op.carry = "C";
+      }
       if (op.r1 == 0b110)
          op.cycles += 2;
       switch (op.m11000000)
