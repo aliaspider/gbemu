@@ -467,8 +467,18 @@ next_instruction:
    case 0xF1:
       CPU_POP_AF();
 
+   case 0xC9:
+      CPU_RET();
+   case 0xD9:
+      CPU_RETI();
+
    case 0xC3:
       CPU_JP(CPU_COND_ALWAYS);
+
+   case 0xF3:
+      CPU_DI();
+   case 0xFB:
+      CPU_DI();
 
    case 0xC4:
       CPU_CALL(CPU_COND_NZ);
@@ -550,6 +560,108 @@ next_instruction:
    {
       switch (GB.MEMORY[CPU.PC++])
       {
+      case 0x00:
+         CPU_RLC(REG_B);
+      case 0x01:
+         CPU_RLC(REG_C);
+      case 0x02:
+         CPU_RLC(REG_D);
+      case 0x03:
+         CPU_RLC(REG_E);
+      case 0x04:
+         CPU_RLC(REG_H);
+      case 0x05:
+         CPU_RLC(REG_L);
+      case 0x06:
+         CPU_RLC_HL();
+      case 0x07:
+         CPU_RLC(REG_A);
+
+      case 0x08:
+         CPU_RRC(REG_B);
+      case 0x09:
+         CPU_RRC(REG_C);
+      case 0x0A:
+         CPU_RRC(REG_D);
+      case 0x0B:
+         CPU_RRC(REG_E);
+      case 0x0C:
+         CPU_RRC(REG_H);
+      case 0x0D:
+         CPU_RRC(REG_L);
+      case 0x0E:
+         CPU_RRC_HL();
+      case 0x0F:
+         CPU_RRC(REG_A);
+
+      case 0x10:
+         CPU_RL(REG_B);
+      case 0x11:
+         CPU_RL(REG_C);
+      case 0x12:
+         CPU_RL(REG_D);
+      case 0x13:
+         CPU_RL(REG_E);
+      case 0x14:
+         CPU_RL(REG_H);
+      case 0x15:
+         CPU_RL(REG_L);
+      case 0x16:
+         CPU_RL_HL();
+      case 0x17:
+         CPU_RL(REG_A);
+
+      case 0x18:
+         CPU_RR(REG_B);
+      case 0x19:
+         CPU_RR(REG_C);
+      case 0x1A:
+         CPU_RR(REG_D);
+      case 0x1B:
+         CPU_RR(REG_E);
+      case 0x1C:
+         CPU_RR(REG_H);
+      case 0x1D:
+         CPU_RR(REG_L);
+      case 0x1E:
+         CPU_RR_HL();
+      case 0x1F:
+         CPU_RR(REG_A);
+
+      case 0x20:
+         CPU_SLA(REG_B);
+      case 0x21:
+         CPU_SLA(REG_C);
+      case 0x22:
+         CPU_SLA(REG_D);
+      case 0x23:
+         CPU_SLA(REG_E);
+      case 0x24:
+         CPU_SLA(REG_H);
+      case 0x25:
+         CPU_SLA(REG_L);
+      case 0x26:
+         CPU_SLA_HL();
+      case 0x27:
+         CPU_SLA(REG_A);
+
+      case 0x28:
+         CPU_SRA(REG_B);
+      case 0x29:
+         CPU_SRA(REG_C);
+      case 0x2A:
+         CPU_SRA(REG_D);
+      case 0x2B:
+         CPU_SRA(REG_E);
+      case 0x2C:
+         CPU_SRA(REG_H);
+      case 0x2D:
+         CPU_SRA(REG_L);
+      case 0x2E:
+         CPU_SRA_HL();
+      case 0x2F:
+         CPU_SRA(REG_A);
+
       case 0x80:
          CPU_RES(0, REG_B);
       case 0x81:

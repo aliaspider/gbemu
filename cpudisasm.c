@@ -199,7 +199,6 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
             break;
          case 0b101:
             op.label = "SRA";
-            op.carry = "0";
             break;
          case 0b110:
             op.label = "SWAP";
