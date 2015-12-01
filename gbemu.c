@@ -1,4 +1,5 @@
 #include "gbemu.h"
+#include "cpudisasm.h"
 #include <string.h>
 
 gbemu_state_t GB;
@@ -78,10 +79,31 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
 
    fflush(stdout);
 //   exit(0);
+
+   GB.CPU.AF = 0;
+   GB.CPU.BC = 0;
+   GB.CPU.DE = 0;
+   GB.CPU.HL = 0;
+   GB.CPU.SP = 0xFFFE;
+   GB.CPU.PC = 0x100;
+   GB.CPU.cycles = 0;
+   GB.CPU.interrupts_enabled = 1;
 }
 
-
+#if 1
 void gbemu_run(void)
 {
-   gbemu_cpu_run();
+   gbemu_cpu_run(0x8000);
 }
+#else
+void gbemu_run(void)
+{
+//   GB.CPU.PC = 0x150;
+//   while (GB.CPU.PC < 0x300)
+//      GB.CPU.PC += gbemu_disasm_current(&GB.CPU);
+   int i;
+   for (i = 0; i< 0x20; i++)
+      GB.CPU.PC += gbemu_disasm_current(&GB.CPU);
+   DEBUG_HOLD();
+}
+#endif

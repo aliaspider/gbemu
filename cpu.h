@@ -59,6 +59,6 @@ typedef struct
    bool interrupts_enabled;
 }gbemu_cpu_t;
 
-void gbemu_cpu_run(void);
+void gbemu_cpu_run(int cycles);
 
 #endif // CPU_H

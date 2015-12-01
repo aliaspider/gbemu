@@ -6,11 +6,14 @@
 #include <signal.h>
 
 
-void gbemu_cpu_run(void)
+void gbemu_cpu_run(int cycles)
 {
    gbemu_cpu_t CPU = GB.CPU;
    
+   CPU.cycles = 0;
 next_instruction:
+   if (CPU.cycles > cycles)
+      return;
    gbemu_dump_state(&CPU);
    gbemu_disasm_current(&CPU);
 
@@ -31,15 +34,15 @@ next_instruction:
    case 0x10:
       CPU_STOP();
    case 0x18:
-      CPU_JP_PC_off8(CPU_FLAG_ALWAYS);
+      CPU_JR(CPU_FLAG_ALWAYS);
    case 0x20:
-      CPU_JP_PC_off8(CPU_FLAG_NZ);
+      CPU_JR(CPU_FLAG_NZ);
    case 0x28:
-      CPU_JP_PC_off8(CPU_FLAG_Z);
+      CPU_JR(CPU_FLAG_Z);
    case 0x30:
-      CPU_JP_PC_off8(CPU_FLAG_NC);
+      CPU_JR(CPU_FLAG_NC);
    case 0x38:
-      CPU_JP_PC_off8(CPU_FLAG_C);
+      CPU_JR(CPU_FLAG_C);
 
    case 0x01:
       CPU_LD_rr_imm16(REG_BC);
@@ -464,6 +467,20 @@ next_instruction:
    case 0xF1:
       CPU_POP_AF();
 
+   case 0xC3:
+      CPU_JP(CPU_FLAG_ALWAYS);
+
+   case 0xC4:
+      CPU_CALL(CPU_FLAG_NZ);
+   case 0xCC:
+      CPU_CALL(CPU_FLAG_Z);
+   case 0xD4:
+      CPU_CALL(CPU_FLAG_NC);
+   case 0xDC:
+      CPU_CALL(CPU_FLAG_C);
+
+   case 0xCD:
+      CPU_CALL(CPU_FLAG_ALWAYS);
 
 
 

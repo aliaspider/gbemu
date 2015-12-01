@@ -499,7 +499,7 @@
 
 
 /* control flow */
-#define CPU_JP_PC_off8(cond) \
+#define CPU_JR(cond) \
    do\
    {\
       if(cond)\
@@ -515,13 +515,56 @@
       CPU_exec_next();\
    }while(0)
 
+#define CPU_JP(cond) \
+   do\
+   {\
+      if(cond)\
+      {\
+         uint16_t addr = GB_READ_U8(REG_PC++);\
+         addr |= GB_READ_U8(REG_PC++) << 8;\
+         REG_PC = addr;\
+         CPU_cycles_add(4);\
+      }\
+      else\
+      {\
+         REG_PC+=2;\
+         CPU_cycles_add(3);\
+      }\
+      CPU_exec_next();\
+   }while(0)
+
+#define CPU_JP_HL(cond) \
+      REG_PC = GB_READ_U8(REG_HL) | (GB_READ_U8((uint16_t)(REG_HL + 1)) << 8);\
+      CPU_cycles_inc();\
+      CPU_exec_next();
+
+#define CPU_CALL(cond) \
+   do\
+   {\
+      if(cond)\
+      {\
+         uint16_t addr = GB_READ_U8(REG_PC++);\
+         addr |= GB_READ_U8(REG_PC++) << 8;\
+         GB_WRITE_U8(--REG_SP, (uint8_t)(REG_PC >> 8));\
+         GB_WRITE_U8(--REG_SP, (uint8_t)REG_PC);\
+         REG_PC = addr;\
+         CPU_cycles_add(6);\
+      }\
+      else\
+      {\
+         REG_PC+=2;\
+         CPU_cycles_add(3);\
+      }\
+      CPU_exec_next();\
+   }while(0)
+
 
 #define CPU_RET_cc(cc) \
    do\
    {\
       if(cc)\
       {\
-         uint8_t addr = GB_READ_U8(REG_SP++);\
+         uint16_t addr = GB_READ_U8(REG_SP++);\
          addr |= GB_READ_U8(REG_SP++) << 8;\
          REG_PC = addr;\
          CPU_cycles_add(5);\
@@ -534,7 +577,7 @@
 #define CPU_RET() \
    do\
    {\
-      uint8_t addr = GB_READ_U8(REG_SP++);\
+      uint16_t addr = GB_READ_U8(REG_SP++);\
       addr |= GB_READ_U8(REG_SP++) << 8;\
       REG_PC = addr;\
       CPU_cycles_add(4);\
@@ -544,7 +587,7 @@
 #define CPU_RETI() \
    do\
    {\
-      uint8_t addr = GB_READ_U8(REG_SP++);\
+      uint16_t addr = GB_READ_U8(REG_SP++);\
       addr |= GB_READ_U8(REG_SP++) << 8;\
       REG_PC = addr;\
       CPU_cycles_add(4);\
