@@ -75,11 +75,21 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
    printf("global checksum : 0x%02X%02X\n", (uint32_t)GB.HEADER.global_checksum_high
           , (uint32_t)GB.HEADER.global_checksum_low);
 
-
+   gbemu_wait_for_input();
 
    fflush(stdout);
 //   exit(0);
-
+#if 1
+   GB.CPU.AF = 0x01B0;
+   GB.CPU.BC = 0x0013;
+   GB.CPU.DE = 0x00D8;
+   GB.CPU.HL = 0x014D;
+   GB.CPU.SP = 0xFFFE;
+   GB.CPU.PC = 0x150;
+   GB.CPU.cycles = 0;
+   GB.CPU.interrupts_enabled = 1;
+   DEBUG_HOLD();
+#else
    GB.CPU.AF = 0;
    GB.CPU.BC = 0;
    GB.CPU.DE = 0;
@@ -88,11 +98,13 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
    GB.CPU.PC = 0x100;
    GB.CPU.cycles = 0;
    GB.CPU.interrupts_enabled = 1;
+#endif
 }
 
 #if 1
 void gbemu_run(void)
 {
+//   DEBUG_HOLD();
    gbemu_cpu_run(0x8000);
 }
 #else
@@ -100,7 +112,7 @@ void gbemu_run(void)
 {
 //   GB.CPU.PC = 0x150;
 //   while (GB.CPU.PC < 0x300)
-//      GB.CPU.PC += gbemu_disasm_current(&GB.CPU);
+//      GB.CPU.PC += gbemu_disasm_current(&GB.CPU, false);
    int i;
    for (i = 0; i< 0x20; i++)
       GB.CPU.PC += gbemu_disasm_current(&GB.CPU);

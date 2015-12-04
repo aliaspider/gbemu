@@ -3,7 +3,6 @@
 
 #include "cpu.h"
 
-int gbemu_disasm_current(gbemu_cpu_t* CPU);
-void gbemu_dump_state(gbemu_cpu_t* CPU);
+int gbemu_disasm_current(gbemu_cpu_t* CPU, bool dump_state);
 
 #endif // CPUDISASM_H

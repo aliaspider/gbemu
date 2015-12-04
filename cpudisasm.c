@@ -3,7 +3,7 @@
 #include "cpu.h"
 #include "cpudisasm.h"
 
-int gbemu_disasm_current(gbemu_cpu_t* CPU)
+int gbemu_disasm_current(gbemu_cpu_t* CPU, bool dump_state)
 {
    static const char* reg_names[] = {"B", "C", "D", "E", "H", "L", "(HL)", "A"};
    static const char* reg16_names[] = {"BC", "DE", "HL", "SP"};
@@ -611,6 +611,23 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
       break;
    }
 
+
+   if(dump_state)
+   {
+      static int call_count = 0;
+      if(!((call_count++) & 0x1f))
+      {
+         gbemu_check_exit_request();
+         fflush(stdout);
+         printf("cycles   SP   A F  B C  D E  H L  (Z N H C)   (PC  ) OP -- -- : clck\n");
+      }
+
+      printf("%-8u %04X %04X %04X %04X %04X (%u %u %u %u)-->",
+             CPU->cycles, CPU->SP, CPU->AF, CPU->BC, CPU->DE, CPU->HL,
+             CPU->FZ, CPU->FN, CPU->FH, CPU->FC);
+
+   }
+
    printf("(%04X) ", CPU->PC);
 
    if (op.size == 1)
@@ -646,18 +663,6 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU)
       printf(" ?   (? ? ? ?)  ????");
 
 
-
-
    printf("\n");
-   fflush(stdout);
    return op.size;
-}
-
-void gbemu_dump_state(gbemu_cpu_t* CPU)
-{
-
-   printf("%8u PC: %04X SP: %04X AF: %04X BC: %04X DE: %04X HL: %04X (Z:%u N:%u H:%u C:%u)\n",
-          CPU->cycles, CPU->PC, CPU->SP, CPU->AF, CPU->BC, CPU->DE, CPU->HL,
-          CPU->FZ, CPU->FN, CPU->FH, CPU->FC);
-   fflush(stdout);
 }

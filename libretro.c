@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <signal.h>
 #include "libretro.h"
 #include "retro_miscellaneous.h"
 #include "gbemu.h"
@@ -49,6 +50,18 @@ void gbemu_wait_for_input(void)
    }
    while(!input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START));
 }
+
+void gbemu_check_exit_request(void)
+{
+   if(!poll_cb || !input_cb)
+      return;
+
+   poll_cb();
+   if(input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT))
+//      environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
+      exit(0);
+}
+
 
 void retro_set_environment(retro_environment_t cb)
 {

@@ -5,17 +5,39 @@
 #include <stdint.h>
 #include <signal.h>
 
+#define GB_LINE_TICK_COUNT  114
+#define GB_V_COUNT   154
+#define GB_FRAME_TICK_COUNT  (GB_LINE_TICK_COUNT * GB_V_COUNT)
+
+#define GB_LY GB.MEMORY[0xFF44]
 
 void gbemu_cpu_run(int cycles)
 {
    gbemu_cpu_t CPU = GB.CPU;
    
    CPU.cycles = 0;
+   int cycles_last = 0;
+   int h_cycles = 0;
 next_instruction:
    if (CPU.cycles > cycles)
-      return;
-   gbemu_dump_state(&CPU);
-   gbemu_disasm_current(&CPU);
+      goto cpu_exit;
+
+   h_cycles += CPU.cycles - cycles_last;
+   cycles_last = CPU.cycles;
+   if(h_cycles > GB_LINE_TICK_COUNT)
+   {
+      h_cycles -= GB_LINE_TICK_COUNT;
+//      GB_LY++;
+      if(GB_LY >= GB_V_COUNT)
+      {
+         GB_LY = 0;
+         goto cpu_exit;
+      }
+   }
+
+
+
+   gbemu_disasm_current(&CPU, true);
 
    switch (GB.MEMORY[CPU.PC++])
    {
@@ -952,5 +974,6 @@ next_instruction:
       break;
    }
    
+cpu_exit:
    GB.CPU = CPU;
 }
