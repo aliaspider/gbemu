@@ -63,4 +63,15 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data);
 void gbemu_wait_for_input(void);
 void gbemu_check_exit_request(void);
 
+#ifndef NDEBUG
+#ifdef _WIN32
+#define DEBUG_BREAK() DebugBreak()
+#else
+#include <signal.h>
+#define DEBUG_BREAK() raise(SIGTRAP)
+#endif
+#else
+#define DEBUG_BREAK()
+#endif
+
 #endif // GBEMU_H

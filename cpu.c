@@ -2,6 +2,7 @@
 #include "cpumacros.h"
 #include "cpudisasm.h"
 
+#include "libretro.h"
 #include <stdint.h>
 #include <signal.h>
 
@@ -27,7 +28,7 @@ next_instruction:
    if(h_cycles > GB_LINE_TICK_COUNT)
    {
       h_cycles -= GB_LINE_TICK_COUNT;
-//      GB_LY++;
+      GB_LY++;
       if(GB_LY >= GB_V_COUNT)
       {
          GB_LY = 0;
@@ -37,7 +38,7 @@ next_instruction:
 
 
 
-   gbemu_disasm_current(&CPU, true);
+//   gbemu_disasm_current(&CPU, true);
 
    switch (GB.MEMORY[CPU.PC++])
    {
@@ -966,11 +967,17 @@ next_instruction:
    
    default:
    unknown_opcode:
+      {
+      extern retro_environment_t environ_cb;
       retro_sleep(10);
       printf("unknown opcode : 0x%02X\n", GB.MEMORY[CPU.PC - 1]);
       fflush(stdout);
-      raise(SIGINT);
+      DEBUG_BREAK();
+
+      if (environ_cb)
+         environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
       exit(0);
+      }
       break;
    }
    

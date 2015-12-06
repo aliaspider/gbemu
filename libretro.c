@@ -13,7 +13,7 @@ static retro_video_refresh_t video_cb = NULL;
 static retro_input_poll_t poll_cb = NULL;
 static retro_input_state_t input_cb = NULL;
 static retro_audio_sample_batch_t audio_batch_cb = NULL;
-static retro_environment_t environ_cb = NULL;
+retro_environment_t environ_cb = NULL;
 struct retro_perf_callback perf_cb;
 
 #ifdef PERF_TEST
@@ -179,7 +179,8 @@ void retro_run(void)
 
    video_cb(NULL, 160, 144, 320);
 //   DEBUG_HOLD();
-//   printf("frame : %i\n", frames++);
+//   printf("frame : %i\n", frames);
+   frames++;
    fflush(stdout);
 }
 
