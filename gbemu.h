@@ -12,6 +12,11 @@
 #include "cart.h"
 
 
+#define GB_LCD_STAT_MODE0_HBLANK          0
+#define GB_LCD_STAT_MODE1_VBLANK          1
+#define GB_LCD_STAT_MODE2_OAM_busy        2
+#define GB_LCD_STAT_MODE3_OAM_VRAM_busy   3
+
 typedef struct
 {
    union
@@ -41,9 +46,43 @@ typedef struct
          uint8_t ECHO[0x1E00];
          uint8_t OAM[0xA0];
          uint8_t unused[0x60];
-         uint8_t IO[0x80];
+         union
+         {
+            uint8_t IO[0x80];  // @0xFF00
+            struct
+            {
+               uint8_t IO_unused0[0xF];
+               struct
+               {
+                  unsigned Vblank   :1;
+                  unsigned LCD_stat :1;
+                  unsigned timer    :1;
+                  unsigned serial   :1;
+                  unsigned joypad   :1;
+               }IF;
+               uint8_t IO_unused1[0x30];
+               uint8_t LCDC;
+               struct
+               {
+                  unsigned mode_flag      :2;
+                  unsigned LCY_eq_LY_flag :1;
+                  unsigned HBlank_IE      :1;
+                  unsigned VBlank_IE      :1;
+                  unsigned OAM_IE         :1;
+                  unsigned LCY_eq_LY_IE   :1;
+               }LCD_STAT;
+            };
+         };
+
          uint8_t HRAM[0x7F];
-         uint8_t IE_reg;
+         struct
+         {
+            unsigned Vblank   :1;
+            unsigned LCD_stat :1;
+            unsigned timer    :1;
+            unsigned serial   :1;
+            unsigned joypad   :1;
+         }IE;
       };
       uint8_t MEMORY [0x10000];
       int8_t  sMEMORY[0x10000];

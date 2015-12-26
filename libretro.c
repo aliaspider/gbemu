@@ -182,6 +182,7 @@ void retro_run(void)
 //   printf("frame : %i\n", frames);
    frames++;
    fflush(stdout);
+//   gbemu_check_exit_request();
 }
 
 bool retro_load_game(const struct retro_game_info* game)

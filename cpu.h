@@ -56,7 +56,7 @@ typedef struct
    uint16_t SP;
    uint16_t PC;
    int cycles;
-   bool interrupts_enabled;
+   int IME;
 }gbemu_cpu_t;
 
 void gbemu_cpu_run(int cycles);

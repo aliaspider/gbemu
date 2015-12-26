@@ -10,7 +10,8 @@
 #define GB_V_COUNT   154
 #define GB_FRAME_TICK_COUNT  (GB_LINE_TICK_COUNT * GB_V_COUNT)
 
-#define GB_LY GB.MEMORY[0xFF44]
+#define GB_LY  GB.MEMORY[0xFF44]
+#define GB_LYC GB.MEMORY[0xFF45]
 
 void gbemu_cpu_run(int cycles)
 {
@@ -36,7 +37,55 @@ next_instruction:
       }
    }
 
+   GB.LCD_STAT.LCY_eq_LY_flag = (GB_LY == GB_LYC);
 
+   if(GB_LY > 143)
+      GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE1_VBLANK;
+   else if (h_cycles > (160 + 80))
+      GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE0_HBLANK;
+   else if (h_cycles > 80)
+      GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE3_OAM_VRAM_busy;
+   else
+      GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE2_OAM_busy;
+
+
+   if(CPU.IME)
+   {
+      if(GB.IF.Vblank & GB.IE.Vblank)
+      {
+         CPU.IME = 0;
+         GB.IF.Vblank = 0;
+         CPU_INT(0x40);
+      }
+      else if((GB.IF.LCD_stat & GB.IE.LCD_stat) &&
+         ((GB.LCD_STAT.VBlank_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE1_VBLANK)) ||
+          (GB.LCD_STAT.HBlank_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE0_HBLANK)) ||
+          (GB.LCD_STAT.OAM_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE2_OAM_busy)) ||
+          (GB.LCD_STAT.LCY_eq_LY_IE && GB.LCD_STAT.LCY_eq_LY_flag)))
+      {
+         CPU.IME = 0;
+         GB.IF.LCD_stat = 0;
+         CPU_INT(0x48);
+      }
+      else if(GB.IF.timer & GB.IE.serial)
+      {
+         CPU.IME = 0;
+         GB.IF.serial = 0;
+         CPU_INT(0x50);
+      }
+      else if(GB.IF.serial & GB.IE.serial)
+      {
+         CPU.IME = 0;
+         GB.IF.serial = 0;
+         CPU_INT(0x58);
+      }
+      else if(GB.IF.joypad & GB.IE.joypad)
+      {
+         CPU.IME = 0;
+         GB.IF.joypad = 0;
+         CPU_INT(0x60);
+      }
+   }
 
 //   gbemu_disasm_current(&CPU, true);
 
@@ -578,6 +627,15 @@ next_instruction:
       CPU.SP = CPU.HL;
       CPU.cycles += 2;
       goto next_instruction;
+
+   case 0xCF:
+      CPU_RST(0x08);
+   case 0xDF:
+      CPU_RST(0x18);
+   case 0xEF:
+      CPU_RST(0x28);
+   case 0xFF:
+      CPU_RST(0x38);
 
    case 0xCB:
    {
