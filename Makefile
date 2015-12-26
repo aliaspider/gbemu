@@ -162,6 +162,7 @@ else
    TARGET := $(TARGET_NAME)_libretro.dll
    CC = gcc
    CXX = g++
+   CFLAGS += -mno-ms-bitfields
    SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
    LDFLAGS += -static-libgcc -static-libstdc++ -lwinmm
 endif
