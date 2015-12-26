@@ -129,10 +129,10 @@ void retro_get_system_info(struct retro_system_info* info)
 
 void retro_get_system_av_info(struct retro_system_av_info* info)
 {
-   info->geometry.base_width = 160;
-   info->geometry.base_height = 144;
-   info->geometry.max_width = 160;
-   info->geometry.max_height = 144;
+   info->geometry.base_width = 256;
+   info->geometry.base_height = 512;
+   info->geometry.max_width = 256;
+   info->geometry.max_height = 512;
    info->geometry.aspect_ratio = 0.0;
    info->timing.fps = 60.0;
    info->timing.sample_rate = 32768;
@@ -177,7 +177,10 @@ void retro_run(void)
    gbemu_run();
    RETRO_PERFORMANCE_STOP(gbemu_main_func);
 
-   video_cb(NULL, 160, 144, 320);
+//   gbemu_draw_tilemap();
+   gbemu_dump_memory();
+
+   video_cb(gbemu_frame, 256, 512, 512);
 //   DEBUG_HOLD();
 //   printf("frame : %i\n", frames);
    frames++;

@@ -9,6 +9,7 @@
 #include "retro_miscellaneous.h"
 
 #include "cpu.h"
+#include "ppu.h"
 #include "cart.h"
 
 
