@@ -41,9 +41,9 @@ next_instruction:
 
    if(GB_LY > 143)
       GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE1_VBLANK;
-   else if (h_cycles > (160 + 80))
+   else if (h_cycles > (40 + 20))
       GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE0_HBLANK;
-   else if (h_cycles > 80)
+   else if (h_cycles > 20)
       GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE3_OAM_VRAM_busy;
    else
       GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE2_OAM_busy;
