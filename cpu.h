@@ -8,11 +8,11 @@ typedef struct
 {
    union
    {
-      struct
+      struct __attribute__((packed))
       {
-         union
+         union __attribute__((packed))
          {
-            struct
+            struct __attribute__((packed))
             {
                unsigned FL :4;
                unsigned FC :1;
@@ -28,7 +28,7 @@ typedef struct
    };
    union
    {
-      struct
+      struct __attribute__((packed))
       {
          uint8_t C;
          uint8_t B;
@@ -37,7 +37,7 @@ typedef struct
    };
    union
    {
-      struct
+      struct __attribute__((packed))
       {
          uint8_t E;
          uint8_t D;
@@ -46,7 +46,7 @@ typedef struct
    };
    union
    {
-      struct
+      struct __attribute__((packed))
       {
          uint8_t L;
          uint8_t H;
