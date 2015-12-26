@@ -32,8 +32,9 @@ typedef struct
             };
             uint8_t ROM[0x8000];
             gbemu_rom_header_t HEADER;
-         };
+         };         
          uint8_t VRAM[0x2000];
+         uint8_t cart_RAM[0x2000];
          union
          {
             struct
@@ -52,7 +53,7 @@ typedef struct
             struct
             {
                uint8_t IO_unused0[0xF];
-               struct
+               struct __attribute__((packed))
                {
                   unsigned Vblank   :1;
                   unsigned LCD_stat :1;
@@ -62,7 +63,7 @@ typedef struct
                }IF;
                uint8_t IO_unused1[0x30];
                uint8_t LCDC;
-               struct
+               struct __attribute__((packed))
                {
                   unsigned mode_flag      :2;
                   unsigned LCY_eq_LY_flag :1;
@@ -75,7 +76,7 @@ typedef struct
          };
 
          uint8_t HRAM[0x7F];
-         struct
+         struct __attribute__((packed))
          {
             unsigned Vblank   :1;
             unsigned LCD_stat :1;

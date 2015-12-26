@@ -4,9 +4,48 @@
 
 gbemu_state_t GB;
 
+#define gb_check_addr(reg, addr, size) \
+   do {\
+      if(((uint8_t*)&reg != &GB.MEMORY[addr]) || (sizeof(reg) != size)) \
+      {\
+         printf("reg : %s\n expected: addr = 0x%04X size = 0x%X\n got:      addr = 0x%04X size = 0x%X\n ", #reg, \
+             addr, size, (uint8_t*)&reg - GB.MEMORY, sizeof(reg));\
+         exit(1);\
+      }\
+   }while(0)
+
+#define gb_check_register8(reg, addr) gb_check_addr(reg, addr, 1)
+
+void gbemu_sanity_ckecks(void)
+{
+   gb_check_addr(GB.ROM, 0x0, 0x8000);
+   gb_check_addr(GB.ROM00, 0x0, 0x4000);
+   gb_check_addr(GB.ROMXX, 0x4000, 0x4000);
+   gb_check_addr(GB.HEADER, 0x0, 0x150);
+   gb_check_addr(GB.VRAM, 0x8000, 0x2000);
+   gb_check_addr(GB.WRAM, 0xC000, 0x2000);
+   gb_check_addr(GB.WRAM0, 0xC000, 0x1000);
+   gb_check_addr(GB.WRAM1, 0xD000, 0x1000);
+   gb_check_addr(GB.ECHO, 0xE000, 0x1E00);
+   gb_check_addr(GB.OAM, 0xFE00, 0xA0);
+   gb_check_addr(GB.unused, 0xFEA0, 0x60);
+   gb_check_addr(GB.IO, 0xFF00, 0x80);
+   gb_check_addr(GB.HRAM, 0xFF80, 0x7F);
+
+   gb_check_register8(GB.IF, 0xFF0F);
+   gb_check_register8(GB.LCDC, 0xFF40);
+   gb_check_register8(GB.LCD_STAT, 0xFF41);
+   gb_check_register8(GB.IE, 0xFFFF);
+
+}
+
+
+
 bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
 {
    int i;
+
+   gbemu_sanity_ckecks();
 
    cartridge_info_t* cart_info = gbemu_get_cart_info(GB.HEADER.cart_info_id);
 
@@ -130,6 +169,8 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
    GB.CPU.cycles = 0;
    GB.CPU.interrupts_enabled = 1;
 #endif
+
+   return true;
 }
 
 #if 1
