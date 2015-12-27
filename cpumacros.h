@@ -29,8 +29,8 @@
 
 #define CPU_COND_Z  CPU.FZ
 #define CPU_COND_NZ !CPU.FZ
-#define CPU_COND_C  CPU.C
-#define CPU_COND_NC !CPU.C
+#define CPU_COND_C  CPU.FC
+#define CPU_COND_NC !CPU.FC
 #define CPU_COND_ALWAYS 1
 
 #define CPU_cycles_inc()      CPU.cycles++
