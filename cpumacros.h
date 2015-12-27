@@ -25,7 +25,7 @@
 #define CPU_FLAG_Z  CPU.FZ
 #define CPU_FLAG_N  CPU.FN
 #define CPU_FLAG_H  CPU.FH
-#define CPU_FLAG_C  CPU.C
+#define CPU_FLAG_C  CPU.FC
 
 #define CPU_COND_Z  CPU.FZ
 #define CPU_COND_NZ !CPU.FZ
