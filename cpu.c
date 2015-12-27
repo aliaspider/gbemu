@@ -86,8 +86,30 @@ next_instruction:
          CPU_INT(0x60);
       }
    }
+//#define DISASM
+//#define SKIP_COUNT 0x7490
+//#define SKIP_COUNT 0x71b0
 
-//   gbemu_disasm_current(&CPU, true);
+#ifdef DISASM
+#ifdef SKIP_COUNT
+   static int total_exec = 0;
+   if (total_exec > SKIP_COUNT)
+   {
+      printf("0x%08X: ",total_exec);
+#endif
+      gbemu_disasm_current(&CPU, true);
+      fflush(stdout);
+#ifdef SKIP_COUNT
+   }
+   total_exec++;
+#endif
+#endif
+
+//   if(GB.MEMORY[0xFF44] == 0x94)
+//      fflush(stdout);
+
+//   if(CPU.PC == 0x02F1)
+//      DEBUG_BREAK();
 
    switch (GB.MEMORY[CPU.PC++])
    {
