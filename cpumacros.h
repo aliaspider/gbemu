@@ -96,8 +96,8 @@
    CPU_exec_next();
 
 #define CPU_POP_rr(reg0, reg1) \
-   GB_WRITE_U8(REG_SP++, reg0);\
-   GB_WRITE_U8(REG_SP++, reg1);\
+   reg0 = GB_READ_U8(REG_SP++);\
+   reg1 = GB_READ_U8(REG_SP++);\
    CPU_cycles_add(3);\
    CPU_exec_next();
 
@@ -774,8 +774,8 @@
       CPU_exec_next();\
    }while(0)
 
-#define CPU_JP_HL(cond) \
-      REG_PC = GB_READ_U8(REG_HL) | (GB_READ_U8((uint16_t)(REG_HL + 1)) << 8);\
+#define CPU_JP_HL() \
+      REG_PC = REG_HL;\
       CPU_cycles_inc();\
       CPU_exec_next();
 
