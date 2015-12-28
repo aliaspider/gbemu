@@ -88,7 +88,8 @@ next_instruction:
    }
 //#define DISASM
 //#define SKIP_COUNT 0x7490
-//#define SKIP_COUNT 0x71b0
+//#define SKIP_COUNT 0xCA00
+#define SKIP_COUNT 0xEF20
 
 #ifdef DISASM
 #ifdef SKIP_COUNT
@@ -98,7 +99,7 @@ next_instruction:
       printf("0x%08X: ",total_exec);
 #endif
       gbemu_disasm_current(&CPU, true);
-//      fflush(stdout);
+      fflush(stdout);
 #ifdef SKIP_COUNT
    }
    total_exec++;

@@ -177,7 +177,7 @@ void retro_run(void)
    gbemu_run();
    RETRO_PERFORMANCE_STOP(gbemu_main_func);
 
-//   gbemu_draw_tilemap();
+   gbemu_draw_tilemap();
    gbemu_dump_memory();
 
    video_cb(gbemu_frame, 256, 512, 512);
