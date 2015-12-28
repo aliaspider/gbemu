@@ -629,24 +629,46 @@
       CPU_exec_next();\
    }while(0)
 
-#define CPU_SRA(reg) \
-   CPU_FLAG_C = reg;\
+#define CPU_SRA(reg) \   
    reg = (reg >> 1) | (reg & 0x80);\
    CPU_FLAG_Z = !reg;\
    CPU_FLAG_N = 0;\
    CPU_FLAG_H = 0;\
+   CPU_FLAG_C = 0;\
    CPU_cycles_add(2);\
    CPU_exec_next();
 
 #define CPU_SRA_HL() \
    do {\
-      uint8_t val = GB_READ_U8(REG_HL);\
-      CPU_FLAG_C = val;\
+      uint8_t val = GB_READ_U8(REG_HL);\      
       val = (val >> 1) | (val & 0x80);\
       GB_WRITE_U8(REG_HL, val);\
       CPU_FLAG_Z = !val;\
       CPU_FLAG_N = 0;\
       CPU_FLAG_H = 0;\
+      CPU_FLAG_C = 0;\
+      CPU_cycles_add(4);\
+      CPU_exec_next();\
+   }while(0)
+
+#define CPU_SWAP(reg) \
+   reg = (reg >> 4) | (reg << 4);\
+   CPU_FLAG_Z = !reg;\
+   CPU_FLAG_N = 0;\
+   CPU_FLAG_H = 0;\
+   CPU_FLAG_C = 0;\
+   CPU_cycles_add(2);\
+   CPU_exec_next();
+
+#define CPU_SWAP_HL() \
+   do {\
+      uint8_t val = GB_READ_U8(REG_HL);\
+      val = (val >> 4) | (val << 4);\
+      GB_WRITE_U8(REG_HL, val);\
+      CPU_FLAG_Z = !val;\
+      CPU_FLAG_N = 0;\
+      CPU_FLAG_H = 0;\
+      CPU_FLAG_C = 0;\
       CPU_cycles_add(4);\
       CPU_exec_next();\
    }while(0)

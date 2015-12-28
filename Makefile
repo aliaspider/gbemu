@@ -173,7 +173,7 @@ INCFLAGS := -I.
 ifeq ($(DEBUG),1)
 FLAGS += -O0 -g
 else
-FLAGS += -O3 -DNDEBUG
+FLAGS += -g -O3 -DNDEBUG
 endif
 
 ifeq ($(PERF_TEST),1)

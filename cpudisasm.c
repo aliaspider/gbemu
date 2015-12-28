@@ -656,7 +656,7 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU, bool dump_state)
       }
       else
          if (op.operand1)
-            printf("%s", op.operand1);
+            printf(" %s", op.operand1);
 
    }
    else

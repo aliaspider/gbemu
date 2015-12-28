@@ -98,7 +98,7 @@ next_instruction:
       printf("0x%08X: ",total_exec);
 #endif
       gbemu_disasm_current(&CPU, true);
-      fflush(stdout);
+//      fflush(stdout);
 #ifdef SKIP_COUNT
    }
    total_exec++;
@@ -565,6 +565,18 @@ next_instruction:
       CPU_RET();
    case 0xD9:
       CPU_RETI();
+   case 0xE9:
+      CPU_JP_HL();
+
+
+   case 0xC2:
+      CPU_JP(CPU_COND_NZ);
+   case 0xD2:
+      CPU_JP(CPU_COND_NC);
+   case 0xCA:
+      CPU_JP(CPU_COND_Z);
+   case 0xDA:
+      CPU_JP(CPU_COND_C);
 
    case 0xC3:
       CPU_JP(CPU_COND_ALWAYS);
@@ -764,6 +776,40 @@ next_instruction:
          CPU_SRA_HL();
       case 0x2F:
          CPU_SRA(REG_A);
+
+      case 0x30:
+         CPU_SWAP(REG_B);
+      case 0x31:
+         CPU_SWAP(REG_C);
+      case 0x32:
+         CPU_SWAP(REG_D);
+      case 0x33:
+         CPU_SWAP(REG_E);
+      case 0x34:
+         CPU_SWAP(REG_H);
+      case 0x35:
+         CPU_SWAP(REG_L);
+      case 0x36:
+         CPU_SWAP_HL();
+      case 0x37:
+         CPU_SWAP(REG_A);
+
+      case 0x38:
+         CPU_SRL(REG_B);
+      case 0x39:
+         CPU_SRL(REG_C);
+      case 0x3A:
+         CPU_SRL(REG_D);
+      case 0x3B:
+         CPU_SRL(REG_E);
+      case 0x3C:
+         CPU_SRL(REG_H);
+      case 0x3D:
+         CPU_SRL(REG_L);
+      case 0x3E:
+         CPU_SRL_HL();
+      case 0x3F:
+         CPU_SRL(REG_A);
 
       case 0x80:
          CPU_RES(0, REG_B);
@@ -1038,6 +1084,7 @@ next_instruction:
          CPU_SET(7, REG_A);
 
       default:
+         printf("(0xCB)");
          goto unknown_opcode;
 
       }
@@ -1052,10 +1099,15 @@ next_instruction:
       retro_sleep(10);
       printf("unknown opcode : 0x%02X\n", GB.MEMORY[CPU.PC - 1]);
       fflush(stdout);
-      DEBUG_BREAK();
+//      DEBUG_BREAK();
 
       if (environ_cb)
          environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
+#ifdef PERF_TEST
+      extern struct retro_perf_callback perf_cb;
+      perf_cb.perf_log();
+#endif
+//      return;
       exit(0);
       }
       break;
