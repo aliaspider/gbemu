@@ -12,6 +12,9 @@
 #include "ppu.h"
 #include "cart.h"
 
+#define GB_LINE_TICK_COUNT  114
+#define GB_V_COUNT   154
+#define GB_FRAME_TICK_COUNT  (GB_LINE_TICK_COUNT * GB_V_COUNT)
 
 #define GB_LCD_STAT_MODE0_HBLANK          0
 #define GB_LCD_STAT_MODE1_VBLANK          1

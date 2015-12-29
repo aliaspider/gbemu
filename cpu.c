@@ -6,10 +6,6 @@
 #include <stdint.h>
 #include <signal.h>
 
-#define GB_LINE_TICK_COUNT  114
-#define GB_V_COUNT   154
-#define GB_FRAME_TICK_COUNT  (GB_LINE_TICK_COUNT * GB_V_COUNT)
-
 #define GB_LY  GB.MEMORY[0xFF44]
 #define GB_LYC GB.MEMORY[0xFF45]
 
@@ -52,6 +48,9 @@ void gbemu_cpu_run(int cycles)
    int cycles_last = 0;
    int h_cycles = 0;
 next_instruction:
+
+   gbemu_ppu_draw(CPU.cycles);
+
    if (CPU.cycles > cycles)
       goto cpu_exit;
 
