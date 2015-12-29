@@ -859,6 +859,142 @@ next_instruction:
       case 0x3F:
          CPU_SRL(REG_A);
 
+      case 0x40:
+         CPU_BIT(0, REG_B);
+      case 0x41:
+         CPU_BIT(0, REG_C);
+      case 0x42:
+         CPU_BIT(0, REG_D);
+      case 0x43:
+         CPU_BIT(0, REG_E);
+      case 0x44:
+         CPU_BIT(0, REG_H);
+      case 0x45:
+         CPU_BIT(0, REG_L);
+      case 0x46:
+         CPU_BIT_HL(0);
+      case 0x47:
+         CPU_BIT(0, REG_A);
+
+      case 0x48:
+         CPU_BIT(1, REG_B);
+      case 0x49:
+         CPU_BIT(1, REG_C);
+      case 0x4A:
+         CPU_BIT(1, REG_D);
+      case 0x4B:
+         CPU_BIT(1, REG_E);
+      case 0x4C:
+         CPU_BIT(1, REG_H);
+      case 0x4D:
+         CPU_BIT(1, REG_L);
+      case 0x4E:
+         CPU_BIT_HL(1);
+      case 0x4F:
+         CPU_BIT(1, REG_A);
+
+      case 0x50:
+         CPU_BIT(2, REG_B);
+      case 0x51:
+         CPU_BIT(2, REG_C);
+      case 0x52:
+         CPU_BIT(2, REG_D);
+      case 0x53:
+         CPU_BIT(2, REG_E);
+      case 0x54:
+         CPU_BIT(2, REG_H);
+      case 0x55:
+         CPU_BIT(2, REG_L);
+      case 0x56:
+         CPU_BIT_HL(2);
+      case 0x57:
+         CPU_BIT(2, REG_A);
+
+      case 0x58:
+         CPU_BIT(3, REG_B);
+      case 0x59:
+         CPU_BIT(3, REG_C);
+      case 0x5A:
+         CPU_BIT(3, REG_D);
+      case 0x5B:
+         CPU_BIT(3, REG_E);
+      case 0x5C:
+         CPU_BIT(3, REG_H);
+      case 0x5D:
+         CPU_BIT(3, REG_L);
+      case 0x5E:
+         CPU_BIT_HL(3);
+      case 0x5F:
+         CPU_BIT(3, REG_A);
+
+      case 0x60:
+         CPU_BIT(4, REG_B);
+      case 0x61:
+         CPU_BIT(4, REG_C);
+      case 0x62:
+         CPU_BIT(4, REG_D);
+      case 0x63:
+         CPU_BIT(4, REG_E);
+      case 0x64:
+         CPU_BIT(4, REG_H);
+      case 0x65:
+         CPU_BIT(4, REG_L);
+      case 0x66:
+         CPU_BIT_HL(4);
+      case 0x67:
+         CPU_BIT(4, REG_A);
+
+      case 0x68:
+         CPU_BIT(5, REG_B);
+      case 0x69:
+         CPU_BIT(5, REG_C);
+      case 0x6A:
+         CPU_BIT(5, REG_D);
+      case 0x6B:
+         CPU_BIT(5, REG_E);
+      case 0x6C:
+         CPU_BIT(5, REG_H);
+      case 0x6D:
+         CPU_BIT(5, REG_L);
+      case 0x6E:
+         CPU_BIT_HL(5);
+      case 0x6F:
+         CPU_BIT(5, REG_A);
+
+      case 0x70:
+         CPU_BIT(6, REG_B);
+      case 0x71:
+         CPU_BIT(6, REG_C);
+      case 0x72:
+         CPU_BIT(6, REG_D);
+      case 0x73:
+         CPU_BIT(6, REG_E);
+      case 0x74:
+         CPU_BIT(6, REG_H);
+      case 0x75:
+         CPU_BIT(6, REG_L);
+      case 0x76:
+         CPU_BIT_HL(6);
+      case 0x77:
+         CPU_BIT(6, REG_A);
+
+      case 0x78:
+         CPU_BIT(7, REG_B);
+      case 0x79:
+         CPU_BIT(7, REG_C);
+      case 0x7A:
+         CPU_BIT(7, REG_D);
+      case 0x7B:
+         CPU_BIT(7, REG_E);
+      case 0x7C:
+         CPU_BIT(7, REG_H);
+      case 0x7D:
+         CPU_BIT(7, REG_L);
+      case 0x7E:
+         CPU_BIT_HL(7);
+      case 0x7F:
+         CPU_BIT(7, REG_A);
+
       case 0x80:
          CPU_RES(0, REG_B);
       case 0x81:
