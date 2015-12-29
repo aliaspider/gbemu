@@ -158,6 +158,7 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
    GB.MEMORY[0xFF4A] = 0x00; // WY
    GB.MEMORY[0xFF4B] = 0x00; // WX
    GB.MEMORY[0xFFFF] = 0x00; // IE
+   memset(GB.HRAM, 0, sizeof(GB.HRAM));
    DEBUG_HOLD();
 #else
    GB.CPU.AF = 0;

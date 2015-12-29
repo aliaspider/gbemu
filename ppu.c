@@ -6,8 +6,13 @@
 uint16_t gbemu_frame[256 * 512];
 uint16_t* const gbemu_tilemap_frame = &gbemu_frame[0x10000];
 
+#if 1
 uint16_t gbemu_palette[] = {0xFFFF,0x14|0x2A<<6|0x14<<11,
                             0xA|0x15<<6|0xA<<11,0x0000,};
+#else
+uint16_t gbemu_palette[] = {0xFFFF,0x14|0x2A<<5|0x14<<10,
+                            0xA|0x15<<5|0xA<<10,0x0000,};
+#endif
 
 static void gbemu_draw_tile(uint8_t* tile, uint16_t* frame, int stride)
 {
@@ -46,11 +51,19 @@ void gbemu_draw_tilemap(void)
       ptr+= 16;
       dst += 8;
       i++;
+#if 0
       if(i==32)
       {
          dst += 7 * 256;
          i=0;
       }
+#else
+      if(i==16)
+      {
+         dst += 15 * 128;
+         i=0;
+      }
+#endif
    }
 
 

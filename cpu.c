@@ -13,6 +13,37 @@
 #define GB_LY  GB.MEMORY[0xFF44]
 #define GB_LYC GB.MEMORY[0xFF45]
 
+
+uint8_t gbemu_read_u8(uint16_t addr)
+{
+   switch (addr)
+   {
+   case 0xFF00:
+      return 0xEF;
+//      return GB.MEMORY[addr];
+   default:
+      return GB.MEMORY[addr];
+   }
+}
+
+void gbemu_write_u8(uint16_t addr, uint8_t val)
+{
+   switch (addr)
+   {
+   case 0xFF00:
+      GB.MEMORY[addr] = val & 0xF0;
+      return;
+
+   default:
+      GB.MEMORY[addr] = val;
+   }
+}
+
+int8_t gbemu_read_s8(uint16_t addr)
+{
+   return (int8_t)gbemu_read_u8(addr);
+}
+
 void gbemu_cpu_run(int cycles)
 {
    gbemu_cpu_t CPU = GB.CPU;
@@ -39,19 +70,25 @@ next_instruction:
 
    GB.LCD_STAT.LCY_eq_LY_flag = (GB_LY == GB_LYC);
 
-   if(GB_LY > 143)
-      GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE1_VBLANK;
-   else if (h_cycles > (40 + 20))
-      GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE0_HBLANK;
-   else if (h_cycles > 20)
-      GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE3_OAM_VRAM_busy;
-   else
-      GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE2_OAM_busy;
+   if(GB.LCDC & 0x80)
+   {
+      if(GB_LY > 143)
+         GB.IF.Vblank = 1;
 
+      if(GB_LY > 143)
+         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE1_VBLANK;
+      else if (h_cycles > (40 + 20))
+         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE0_HBLANK;
+      else if (h_cycles > 20)
+         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE3_OAM_VRAM_busy;
+      else
+         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE2_OAM_busy;
+
+   }
 
    if(CPU.IME)
    {
-      if(GB.IF.Vblank & GB.IE.Vblank)
+      if((GB.IF.Vblank & GB.IE.Vblank) && (GB.LCDC & 0x80))
       {
          CPU.IME = 0;
          GB.IF.Vblank = 0;
@@ -86,31 +123,41 @@ next_instruction:
          CPU_INT(0x60);
       }
    }
+
+
 //#define DISASM
 //#define SKIP_COUNT 0x7490
-//#define SKIP_COUNT 0xCA00
-#define SKIP_COUNT 0xEF20
+//#define SKIP_COUNT 0xEEE9
+//#define SKIP_COUNT 0x0001803F
+#define SKIP_COUNT 0xFFFFFFFF
 
-#ifdef DISASM
-#ifdef SKIP_COUNT
+
+
    static int total_exec = 0;
+   static bool force_disasm = false;
+
+   next_instruction_nocheck:
+#ifdef DISASM
+//   if(CPU.PC == 0x658F)
+   if(CPU.PC == 0x0339)
+      force_disasm = true;
+
    if (total_exec > SKIP_COUNT)
    {
+      force_disasm = true;
       printf("0x%08X: ",total_exec);
-#endif
+   }
+
+   if(force_disasm)
+   {
       gbemu_disasm_current(&CPU, true);
       fflush(stdout);
-#ifdef SKIP_COUNT
    }
-   total_exec++;
-#endif
 #endif
 
+   total_exec++;
 //   if(GB.MEMORY[0xFF44] == 0x94)
 //      fflush(stdout);
-
-//   if(CPU.PC == 0x02F1)
-//      DEBUG_BREAK();
 
    switch (GB.MEMORY[CPU.PC++])
    {
@@ -585,7 +632,7 @@ next_instruction:
    case 0xF3:
       CPU_DI();
    case 0xFB:
-      CPU_DI();
+      CPU_EI();
 
    case 0xC4:
       CPU_CALL(CPU_COND_NZ);

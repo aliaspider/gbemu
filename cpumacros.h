@@ -4,9 +4,15 @@
 //#include "cpu.h"
 //gbemu_cpu_t CPU;
 
+#if 0
 #define GB_READ_U8(addr)         GB.MEMORY[addr]
 #define GB_READ_S8(addr)         GB.sMEMORY[addr]
 #define GB_WRITE_U8(addr, val)   GB.MEMORY[addr] = val
+#else
+#define GB_READ_U8(addr)         gbemu_read_u8(addr)
+#define GB_READ_S8(addr)         gbemu_read_s8(addr)
+#define GB_WRITE_U8(addr, val)   gbemu_write_u8(addr, val)
+#endif
 
 #define REG_A CPU.A
 #define REG_F CPU.F
@@ -36,6 +42,7 @@
 #define CPU_cycles_inc()      CPU.cycles++
 #define CPU_cycles_add(count) CPU.cycles += count
 #define CPU_exec_next()       goto next_instruction
+#define CPU_exec_next_nocheck()       goto next_instruction_nocheck
 #define CPU_enable_int()      CPU.IME = 1
 #define CPU_disable_int()      CPU.IME = 0
 
@@ -845,12 +852,12 @@
 #define CPU_DI() \
    CPU_disable_int();\
    CPU_cycles_inc();\
-   CPU_exec_next()
+   CPU_exec_next_nocheck()
 
 #define CPU_EI() \
    CPU_enable_int();\
    CPU_cycles_inc();\
-   CPU_exec_next()
+   CPU_exec_next_nocheck()
 
 #define CPU_INT(addr) \
    do{\
