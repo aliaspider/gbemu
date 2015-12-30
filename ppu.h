@@ -1,10 +1,15 @@
 #ifndef PPU_H
 #define PPU_H
-
 #include <stdint.h>
 
-extern uint16_t gbemu_frame[256 * 512];
+#include "gbemu.h"
 
+#define GBEMU_DRAWBUFFER_W 512
+#define GBEMU_DRAWBUFFER_H 768
+
+extern uint16_t gbemu_frame[GBEMU_DRAWBUFFER_W * GBEMU_DRAWBUFFER_H];
+
+void gbemu_draw_bgmap(void);
 void gbemu_draw_tilemap(void);
 void gbemu_dump_memory(void);
 
