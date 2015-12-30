@@ -76,7 +76,7 @@ void gbemu_draw_tilemap(void)
 
 void gbemu_draw_bgmap(void)
 {
-//   if(GB.LCDC & 0x10)
+   if(!(GB.LCDC & 0x10))
    {
       int8_t* bg_tile_map = (GB.LCDC & 0x08)? &GB.VRAM[0x1C00]: &GB.VRAM[0x1800];
       uint8_t* bg_tile_data = &GB.VRAM[0x1000];
@@ -89,7 +89,7 @@ void gbemu_draw_bgmap(void)
          }
       }
    }
-//   else
+   else
    {
       uint8_t* bg_tile_map = (GB.LCDC & 0x08)? &GB.VRAM[0x1C00]: &GB.VRAM[0x1800];
       uint8_t* bg_tile_data = &GB.VRAM[0x0000];
@@ -98,7 +98,7 @@ void gbemu_draw_bgmap(void)
       {
          for (i = 0; i < 32; i++)
          {
-            gbemu_draw_tile(&bg_tile_data[bg_tile_map[i + j * 32]*16], &gbemu_bgmap_frame[256 + i*8 + j * 8 * GBEMU_DRAWBUFFER_W], GBEMU_DRAWBUFFER_W);
+            gbemu_draw_tile(&bg_tile_data[bg_tile_map[i + j * 32]*16], &gbemu_bgmap_frame[i*8 + j * 8 * GBEMU_DRAWBUFFER_W], GBEMU_DRAWBUFFER_W);
          }
       }
    }
@@ -153,7 +153,7 @@ void gbemu_ppu_draw(int cycles)
 
 
       uint8_t* bg_tile_map = (GB.LCDC & 0x08)? &GB.VRAM[0x1C00]: &GB.VRAM[0x1800];
-      uint8_t* bg_tile_data = (GB.LCDC & 0x10)? &GB.VRAM[0x1000]: &GB.VRAM[0x0000];
+      uint8_t* bg_tile_data = !(GB.LCDC & 0x10)? &GB.VRAM[0x1000]: &GB.VRAM[0x0000];
 
 
       uint8_t SCY = GB.MEMORY[0xFF42];
@@ -164,7 +164,7 @@ void gbemu_ppu_draw(int cycles)
 
       int16_t tile_id = bg_tile_map[(map_coord_x / 8) + (map_coord_y / 8) * 32];
 
-      tile_id = (GB.LCDC & 0x10)? (int8_t)tile_id: tile_id;
+      tile_id = !(GB.LCDC & 0x10)? (int8_t)tile_id: tile_id;
 //      tile_id &= 0xFF;
 
       map_coord_x &= 0x7;
