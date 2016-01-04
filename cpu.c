@@ -5,6 +5,7 @@
 #include "libretro.h"
 #include <stdint.h>
 #include <signal.h>
+#include <string.h>
 
 #define GB_LY  GB.MEMORY[0xFF44]
 #define GB_LYC GB.MEMORY[0xFF45]
@@ -30,10 +31,10 @@ uint8_t gbemu_read_u8(uint16_t addr)
          };
          struct
          {
+            unsigned right   :1;
+            unsigned left    :1;
             unsigned up      :1;
             unsigned down    :1;
-            unsigned left    :1;
-            unsigned right   :1;
             unsigned         :4;
          };
          struct
@@ -54,10 +55,10 @@ uint8_t gbemu_read_u8(uint16_t addr)
 
       if(!gbemu_pad.dpad_select)
       {
+         gbemu_pad.right = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT);
+         gbemu_pad.left = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT);
          gbemu_pad.up = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP);
          gbemu_pad.down = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN);
-         gbemu_pad.left = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT);
-         gbemu_pad.right = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT);
       }
 
       if(!gbemu_pad.buttons_select)
@@ -90,7 +91,8 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
    case 0xFF00:
       GB.MEMORY[0xFF00] = (val & 0xF0) | (GB.MEMORY[0xFF00] & 0xF);
       return;
-
+   case 0xFF46:
+      memcpy(GB.OAM, &GB.MEMORY[val << 8], 0xA0);
    default:
       GB.MEMORY[addr] = val;
    }
