@@ -6,6 +6,7 @@
 uint16_t gbemu_frame[GBEMU_DRAWBUFFER_W * GBEMU_DRAWBUFFER_H];
 uint16_t* const gbemu_tilemap_frame = &gbemu_frame[256];
 uint16_t* const gbemu_bgmap_frame = &gbemu_frame[256 * GBEMU_DRAWBUFFER_W];
+uint16_t* const gbemu_spritemap_frame = &gbemu_frame[256 * GBEMU_DRAWBUFFER_W + 256];
 
 #if 1
 uint16_t gbemu_palette[] = {0xFFFF,0x14|0x2A<<6|0x14<<11,
@@ -14,6 +15,23 @@ uint16_t gbemu_palette[] = {0xFFFF,0x14|0x2A<<6|0x14<<11,
 uint16_t gbemu_palette[] = {0xFFFF,0x14|0x2A<<5|0x14<<10,
                             0xA|0x15<<5|0xA<<10,0x0000,};
 #endif
+
+
+typedef struct __attribute((packed))
+{
+   uint8_t posY;
+   uint8_t posX;
+   uint8_t ID;
+   struct __attribute((packed))
+   {
+      unsigned :4;
+      unsigned palette :1;
+      unsigned flipX   :1;
+      unsigned flipY   :1;
+      unsigned prio    :1;
+   };
+}gbemu_object_attr_t;
+
 
 static void gbemu_draw_tile(uint8_t* tile, uint16_t* frame, int stride)
 {
@@ -106,6 +124,17 @@ void gbemu_draw_bgmap(void)
 
 }
 
+void gbemu_draw_sprite_map(void)
+{
+   int i;
+   gbemu_object_attr_t* obj = (gbemu_object_attr_t*)GB.OAM;
+
+   for (i = 0; i < 40; i++, obj++)
+   {
+      gbemu_draw_tile(&GB.VRAM[obj->ID << 4], &gbemu_spritemap_frame[(i%4)*8 + (i/4) * 8 * GBEMU_DRAWBUFFER_W], GBEMU_DRAWBUFFER_W);
+   }
+
+}
 
 void gbemu_dump_memory(void)
 {
@@ -138,7 +167,7 @@ void gbemu_ppu_draw(int cycles)
 
       int current = i - (scanline * 4 * GB_LINE_TICK_COUNT) - 80;
 
-      if(current < 0 || current > 160)
+      if(current < 0 || current > 159)
          continue;
 
 //      FF40 - LCDC - LCD Control (R/W)
@@ -179,6 +208,30 @@ void gbemu_ppu_draw(int cycles)
       uint8_t bp1 = *(tile_data + 1) << map_coord_x;
       int id = ((bp0 >> 7) & 0x1) | ((bp1 >> 6) & 0x2);
       gbemu_frame[current + scanline * GBEMU_DRAWBUFFER_W] = gbemu_palette[id];
+
+       gbemu_object_attr_t* obj = (gbemu_object_attr_t*)GB.OAM;
+
+      do
+      {
+          if(obj->prio && id > 0)
+             continue;
+
+         int offsetX = current + 8 - (int)obj->posX;
+         int offsetY = scanline + 16 - (int)obj->posY;
+
+         if((offsetX < 0) || (offsetX > 7) || (offsetY < 0) ||(offsetY > 7))
+            continue;
+
+         uint8_t* spr_tile_data = &GB.VRAM[obj->ID << 4];
+         spr_tile_data += (offsetY << 1);
+
+         uint8_t spr_bp0 = *spr_tile_data << offsetX;
+         uint8_t spr_bp1 = *(spr_tile_data + 1) << offsetX;
+         int spr_id = ((spr_bp0 >> 7) & 0x1) | ((spr_bp1 >> 6) & 0x2);
+         if (spr_id)
+            gbemu_frame[current + scanline * GBEMU_DRAWBUFFER_W] = gbemu_palette[spr_id];
+
+      }while(++obj < (gbemu_object_attr_t*)&GB.OAM[0xA0]);
 
    }
 

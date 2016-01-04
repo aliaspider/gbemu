@@ -178,6 +178,7 @@ void retro_run(void)
    RETRO_PERFORMANCE_STOP(gbemu_main_func);
 
 #ifdef VIEW_TILEMAP
+   gbemu_draw_sprite_map();
    gbemu_draw_bgmap();
    gbemu_draw_tilemap();
    gbemu_dump_memory();

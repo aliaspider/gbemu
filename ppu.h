@@ -14,6 +14,7 @@
 
 extern uint16_t gbemu_frame[GBEMU_DRAWBUFFER_W * GBEMU_DRAWBUFFER_H];
 
+void gbemu_draw_sprite_map(void);
 void gbemu_draw_bgmap(void);
 void gbemu_draw_tilemap(void);
 void gbemu_dump_memory(void);
