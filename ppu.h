@@ -4,8 +4,13 @@
 
 #include "gbemu.h"
 
+#ifdef VIEW_TILEMAP
 #define GBEMU_DRAWBUFFER_W 512
 #define GBEMU_DRAWBUFFER_H 768
+#else
+#define GBEMU_DRAWBUFFER_W 160
+#define GBEMU_DRAWBUFFER_H 144
+#endif
 
 extern uint16_t gbemu_frame[GBEMU_DRAWBUFFER_W * GBEMU_DRAWBUFFER_H];
 

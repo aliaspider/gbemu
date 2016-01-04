@@ -177,9 +177,11 @@ void retro_run(void)
    gbemu_run();
    RETRO_PERFORMANCE_STOP(gbemu_main_func);
 
+#ifdef VIEW_TILEMAP
    gbemu_draw_bgmap();
    gbemu_draw_tilemap();
    gbemu_dump_memory();
+#endif
 
    video_cb(gbemu_frame, GBEMU_DRAWBUFFER_W, GBEMU_DRAWBUFFER_H, GBEMU_DRAWBUFFER_W * 2);
 //   DEBUG_HOLD();

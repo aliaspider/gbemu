@@ -1,6 +1,8 @@
 TARGET_NAME := gbemu
-DEBUG       = 0
-PERF_TEST   = 1
+DEBUG        = 0
+PERF_TEST    = 1
+VIEW_TILEMAP = 0
+
 
 OBJECTS :=
 OBJECTS += libretro.o
@@ -179,6 +181,11 @@ endif
 ifeq ($(PERF_TEST),1)
 FLAGS += -DPERF_TEST
 endif
+
+ifeq ($(VIEW_TILEMAP),1)
+FLAGS += -DVIEW_TILEMAP
+endif
+
 FLAGS += -Werror=implicit-function-declaration
 FLAGS += $(DEFS) $(WARNINGS) $(INCFLAGS) $(fpic)
 
