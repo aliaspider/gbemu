@@ -11,7 +11,7 @@
 static retro_log_printf_t log_cb = NULL;
 static retro_video_refresh_t video_cb = NULL;
 static retro_input_poll_t poll_cb = NULL;
-static retro_input_state_t input_cb = NULL;
+retro_input_state_t input_cb = NULL;
 static retro_audio_sample_batch_t audio_batch_cb = NULL;
 retro_environment_t environ_cb = NULL;
 struct retro_perf_callback perf_cb;
