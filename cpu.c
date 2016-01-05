@@ -1,6 +1,7 @@
 #include "gbemu.h"
-#include "cpumacros.h"
 #include "cpudisasm.h"
+#include "cpumacros.h"
+
 
 #include "libretro.h"
 #include <stdint.h>
@@ -1361,4 +1362,5 @@ next_instruction:
    
 cpu_exit:
    GB.CPU = CPU;
+   return;
 }

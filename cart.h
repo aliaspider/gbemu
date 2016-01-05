@@ -58,5 +58,5 @@ typedef struct
 int gbemu_get_rom_size(uint8_t rom_size_id);
 int gbemu_get_ram_size(uint8_t ram_size_id);
 
-cartridge_info_t* gbemu_get_cart_info(uint8_t cart_info_id);
+const cartridge_info_t* gbemu_get_cart_info(uint8_t cart_info_id);
 const char* gbemu_get_cart_type_ident(catridge_type_enum cart_type_id);

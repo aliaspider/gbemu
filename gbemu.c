@@ -16,7 +16,7 @@ gbemu_state_t GB;
 
 #define gb_check_register8(reg, addr) gb_check_addr(reg, addr, 1)
 
-void gbemu_sanity_ckecks(void)
+void gbemu_sanity_checks(void)
 {
    gb_check_addr(GB.ROM, 0x0, 0x8000);
    gb_check_addr(GB.ROM00, 0x0, 0x4000);
@@ -30,9 +30,39 @@ void gbemu_sanity_ckecks(void)
    gb_check_addr(GB.OAM, 0xFE00, 0xA0);
    gb_check_addr(GB.unused, 0xFEA0, 0x60);
    gb_check_addr(GB.IO, 0xFF00, 0x80);
+   gb_check_addr(GB.SND_regs.WAVE_TABLE, 0xFF30, 0x10);
+   gb_check_addr(GB.SND_regs.channels.square1, 0xFF10, 0x5);
+   gb_check_addr(GB.SND_regs.channels.square2, 0xFF15, 0x5);
+   gb_check_addr(GB.SND_regs.channels.wave, 0xFF1A, 0x5);
+   gb_check_addr(GB.SND_regs.channels.noise, 0xFF1F, 0x5);
+   gb_check_addr(GB.SND_regs.channels.master, 0xFF24, 0x3);
    gb_check_addr(GB.HRAM, 0xFF80, 0x7F);
 
    gb_check_register8(GB.IF, 0xFF0F);
+   gb_check_register8(GB.SND_regs.NR10, 0xFF10);
+   gb_check_register8(GB.SND_regs.NR11, 0xFF11);
+   gb_check_register8(GB.SND_regs.NR12, 0xFF12);
+   gb_check_register8(GB.SND_regs.NR13, 0xFF13);
+   gb_check_register8(GB.SND_regs.NR14, 0xFF14);
+   gb_check_register8(GB.SND_regs.NR21, 0xFF16);
+   gb_check_register8(GB.SND_regs.NR22, 0xFF17);
+   gb_check_register8(GB.SND_regs.NR23, 0xFF18);
+   gb_check_register8(GB.SND_regs.NR24, 0xFF19);
+   gb_check_register8(GB.SND_regs.NR30, 0xFF1A);
+   gb_check_register8(GB.SND_regs.NR31, 0xFF1B);
+   gb_check_register8(GB.SND_regs.NR32, 0xFF1C);
+   gb_check_register8(GB.SND_regs.NR33, 0xFF1D);
+   gb_check_register8(GB.SND_regs.NR34, 0xFF1E);
+   gb_check_register8(GB.SND_regs.NR41, 0xFF20);
+   gb_check_register8(GB.SND_regs.NR42, 0xFF21);
+   gb_check_register8(GB.SND_regs.NR43, 0xFF22);
+   gb_check_register8(GB.SND_regs.NR44, 0xFF23);
+   gb_check_register8(GB.SND_regs.NR50, 0xFF24);
+   gb_check_register8(GB.SND_regs.NR51, 0xFF25);
+   gb_check_register8(GB.SND_regs.NR52, 0xFF26);
+
+
+
    gb_check_register8(GB.LCDC, 0xFF40);
    gb_check_register8(GB.LCD_STAT, 0xFF41);
    gb_check_register8(GB.IE, 0xFFFF);
@@ -45,9 +75,9 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
 {
    int i;
 
-   gbemu_sanity_ckecks();
+   gbemu_sanity_checks();
 
-   cartridge_info_t* cart_info = gbemu_get_cart_info(GB.HEADER.cart_info_id);
+   const cartridge_info_t* cart_info = gbemu_get_cart_info(GB.HEADER.cart_info_id);
 
    if(size > sizeof(GB.ROM))
       size = sizeof(GB.ROM);

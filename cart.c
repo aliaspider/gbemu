@@ -84,7 +84,7 @@ int gbemu_get_ram_size(uint8_t ram_size_id)
    return gbemu_ram_size_lut[ram_size_id];
 }
 
-cartridge_info_t* gbemu_get_cart_info(uint8_t cart_info_id)
+const cartridge_info_t* gbemu_get_cart_info(uint8_t cart_info_id)
 {
    return &cartridge_info_lut[cart_info_id];
 }

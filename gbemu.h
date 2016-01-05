@@ -10,6 +10,7 @@
 
 #include "cpu.h"
 #include "ppu.h"
+#include "apu.h"
 #include "cart.h"
 
 #define GB_LINE_TICK_COUNT  114
@@ -65,7 +66,7 @@ typedef struct
                   unsigned serial   :1;
                   unsigned joypad   :1;
                }IF;
-               uint8_t IO_unused1[0x30];
+               gbemu_sound_regs_t SND_regs;
                uint8_t LCDC;
                struct __attribute__((packed))
                {

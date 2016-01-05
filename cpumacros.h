@@ -636,7 +636,7 @@
       CPU_exec_next();\
    }while(0)
 
-#define CPU_SRA(reg) \   
+#define CPU_SRA(reg) \
    reg = (reg >> 1) | (reg & 0x80);\
    CPU_FLAG_Z = !reg;\
    CPU_FLAG_N = 0;\
@@ -647,7 +647,7 @@
 
 #define CPU_SRA_HL() \
    do {\
-      uint8_t val = GB_READ_U8(REG_HL);\      
+      uint8_t val = GB_READ_U8(REG_HL);\
       val = (val >> 1) | (val & 0x80);\
       GB_WRITE_U8(REG_HL, val);\
       CPU_FLAG_Z = !val;\

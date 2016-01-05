@@ -10,6 +10,7 @@ OBJECTS += gbemu.o
 OBJECTS += cpu.o
 OBJECTS += cpudisasm.o
 OBJECTS += ppu.o
+OBJECTS += apu.o
 OBJECTS += cart.o
 
 
@@ -202,13 +203,14 @@ else
 	$(CC) -o $@ $^ $(LDFLAGS)
 endif
 
-%.o: %.cpp
+%.o: %.cpp libretro.h gbemu.h cpu.h ppu.h apu.h cart.h cpudisasm.h cpumacros.h
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
-%.o: %.c
+%.o: %.c libretro.h gbemu.h cpu.h ppu.h apu.h cart.h cpudisasm.h cpumacros.h
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 clean:
 	rm -f $(TARGET) $(OBJECTS)
+
 
 .PHONY: clean
