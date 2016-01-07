@@ -95,6 +95,7 @@ typedef struct
    };
    uint8_t BIOS[0x100];
    gbemu_cpu_t CPU;
+   gbemu_apu_t APU;
 }gbemu_state_t;
 
 extern gbemu_state_t GB;

@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define GBEMU_AUDIO_DECIMATION_RATE 32
+
 typedef struct __attribute__((packed))
 {
    union
@@ -60,10 +62,11 @@ typedef struct __attribute__((packed))
             unsigned starting_volume : 4;
 
             unsigned frequency : 11;
-            unsigned :3;
-            unsigned length_enable :1;
-            unsigned trigger :1;
-         } square1;
+            unsigned : 3;
+            unsigned length_enable : 1;
+            unsigned trigger : 1;
+         }
+         square1;
          struct __attribute__((packed))
          {
             unsigned : 8;
@@ -76,10 +79,11 @@ typedef struct __attribute__((packed))
             unsigned starting_volume : 4;
 
             unsigned frequency : 11;
-            unsigned :3;
-            unsigned length_enable :1;
-            unsigned trigger :1;
-         } square2;
+            unsigned : 3;
+            unsigned length_enable : 1;
+            unsigned trigger : 1;
+         }
+         square2;
          struct __attribute__((packed))
          {
             unsigned : 7;
@@ -92,10 +96,11 @@ typedef struct __attribute__((packed))
             unsigned : 1;
 
             unsigned frequency : 11;
-            unsigned :3;
-            unsigned length_enable :1;
-            unsigned trigger :1;
-         } wave;
+            unsigned : 3;
+            unsigned length_enable : 1;
+            unsigned trigger : 1;
+         }
+         wave;
          struct __attribute__((packed))
          {
             unsigned : 8;
@@ -108,42 +113,117 @@ typedef struct __attribute__((packed))
             unsigned starting_volume : 4;
 
             unsigned divisor_code : 3;
-            unsigned LFSR_width_mode :1;
-            unsigned clock_shift :4;
-            unsigned :6;
-            unsigned length_enable :1;
-            unsigned trigger :1;
-         } noise;
+            unsigned LFSR_width_mode : 1;
+            unsigned clock_shift : 4;
+            unsigned : 6;
+            unsigned length_enable : 1;
+            unsigned trigger : 1;
+         }
+         noise;
 
          struct __attribute__((packed))
          {
-            unsigned R_vol :3;
-            unsigned R_vin_enable :1;
-            unsigned L_vol :3;
-            unsigned L_vin_enable :1;
+            unsigned R_vol : 3;
+            unsigned R_vin_enable : 1;
+            unsigned L_vol : 3;
+            unsigned L_vin_enable : 1;
 
-            unsigned R_square1_enable :1;
-            unsigned R_square2_enable :1;
-            unsigned R_wave_enable :1;
-            unsigned R_noise_enable :1;
-            unsigned L_square1_enable :1;
-            unsigned L_square2_enable :1;
-            unsigned L_wave_enable :1;
-            unsigned L_noise_enable :1;
+            unsigned R_square1_enable : 1;
+            unsigned R_square2_enable : 1;
+            unsigned R_wave_enable : 1;
+            unsigned R_noise_enable : 1;
+            unsigned L_square1_enable : 1;
+            unsigned L_square2_enable : 1;
+            unsigned L_wave_enable : 1;
+            unsigned L_noise_enable : 1;
 
-            unsigned square1_length_status :1;
-            unsigned square2_length_status :1;
-            unsigned wave_length_status :1;
-            unsigned noise_length_status :1;
-            unsigned :3;
-            unsigned power :1;
-         }master;
-      }channels;
+            unsigned square1_status_flag : 1;
+            unsigned square2_status_flag : 1;
+            unsigned wave_status_flag : 1;
+            unsigned noise_status_flag : 1;
+            unsigned : 3;
+            unsigned power_ctrl : 1;
+         }
+         master;
+      } channels;
    };
 
 
 }
 gbemu_sound_regs_t;
+
+#define GBEMU_TIMER_FRAME_SEQUENCER_PERIOD   (1 << 13)
+#define GBEMU_TIMER_FRAME_SEQUENCER_MASK     (GBEMU_TIMER_FRAME_SEQUENCER_PERIOD >> 1)
+
+#define GBEMU_TIMER_LENGTH_COUNTER_TICK_VAL   (0x0)
+#define GBEMU_TIMER_SWEEP_TICK_VAL            (0x10)
+#define GBEMU_TIMER_ENVELOPE_TICK_VAL         (0x111)
+
+static const int8_t gbemu_apu_square_wave_duty_cycles[4][8] =
+{
+   {0, 0, 0, 0, 0, 0, 0, 1},
+   {1, 0, 0, 0, 0, 0, 0, 1},
+   {1, 0, 0, 0, 0, 1, 1, 1},
+   {0, 1, 1, 1, 1, 1, 1, 0}
+};
+
+typedef struct
+{
+   struct
+   {
+      union
+      {
+         struct
+         {
+            unsigned length_counter_seq : 1;
+         };
+         struct
+         {
+            unsigned envelope_seq : 3;
+         };
+         struct
+         {
+            unsigned sweep_seq : 2;
+         };
+         int counter;
+      };
+
+   } frame_sequencer;
+   struct
+   {
+      struct
+      {
+         int counter;
+         int period;
+      } timer;
+      struct
+      {
+         int counter;
+         bool ch_enabled;
+      } length_counter;
+      struct
+      {
+         int counter;
+         int volume;
+      } envelope;
+      struct
+      {
+         int counter;
+         bool enabled;
+         int frequency;
+      } sweep;
+      int counter;
+      int duty;
+      int last_value;
+   } square1;
+
+
+   int counter;
+   int cycles;
+} gbemu_apu_t;
+
+
+void gbemu_apu_run(int target_cycles);
 
 
 #endif // APU_H

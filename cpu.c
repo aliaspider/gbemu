@@ -78,6 +78,48 @@ uint8_t gbemu_read_u8(uint16_t addr)
       return GB.MEMORY[0xFF00];
    }
 
+   case 0xFF10: //NR10
+      return GB.MEMORY[0xFF10]|0x80;
+   case 0xFF11: //NR11
+   case 0xFF16: //NR21
+      return GB.MEMORY[0xFF10]|0x3F;
+   case 0xFF14: //NR14
+   case 0xFF19: //NR24
+   case 0xFF1E: //NR34
+   case 0xFF23: //NR44
+      return GB.MEMORY[0xFF10]|0xBF;
+   case 0xFF1A: //NR30
+      return GB.MEMORY[0xFF10]|0x7F;
+   case 0xFF1C: //NR32
+      return GB.MEMORY[0xFF10]|0x9F;
+   case 0xFF26: //NR52
+   {
+      uint8_t val = (GB.MEMORY[0xFF10] & 0xF0) | 0x70;
+      if((GB.APU.square1.length_counter.counter & 0x3F) ||
+         !GB.SND_regs.channels.square1.length_enable)
+         val |= 0x1;
+
+      return val;
+   }
+   case 0xFF13: //NR13
+   case 0xFF15: //NR20
+   case 0xFF18: //NR23
+   case 0xFF1B: //NR31
+   case 0xFF1D: //NR33
+   case 0xFF1F: //NR40
+   case 0xFF20: //NR41
+   case 0xFF27:
+   case 0xFF28:
+   case 0xFF29:
+   case 0xFF2A:
+   case 0xFF2B:
+   case 0xFF2C:
+   case 0xFF2D:
+   case 0xFF2E:
+   case 0xFF2F:
+      return 0xFF;
+
+
 
 
    default:
@@ -94,6 +136,13 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
       return;
    case 0xFF46:
       memcpy(GB.OAM, &GB.MEMORY[val << 8], 0xA0);
+      return;
+   case 0xFF11: //NR11
+      GB.MEMORY[0xFF11] = val;
+//      GB.APU.square1.length_counter = GB.SND_regs.channels.square1.length_load;
+      GB.APU.square1.length_counter.counter = val & 0x3F;
+      GB.APU.square1.length_counter.ch_enabled = true;
+      return;
    default:
       GB.MEMORY[addr] = val;
    }
@@ -109,11 +158,13 @@ void gbemu_cpu_run(int cycles)
    gbemu_cpu_t CPU = GB.CPU;
    
    CPU.cycles = 0;
+   GB.APU.cycles = 0;
    int cycles_last = 0;
    int h_cycles = 0;
 next_instruction:
 
    gbemu_ppu_draw(CPU.cycles);
+   gbemu_apu_run(CPU.cycles);
 
    if (CPU.cycles > cycles)
       goto cpu_exit;
@@ -197,8 +248,9 @@ next_instruction:
 
 
    static int total_exec = 0;
+#ifdef DISASM
    static bool force_disasm = false;
-
+#endif
    next_instruction_nocheck:
 #ifdef DISASM
 //   if(CPU.PC == 0x658F)
