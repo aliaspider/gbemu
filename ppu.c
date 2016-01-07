@@ -96,7 +96,7 @@ void gbemu_draw_bgmap(void)
 {
    if(!(GB.LCDC & 0x10))
    {
-      int8_t* bg_tile_map = (GB.LCDC & 0x08)? &GB.VRAM[0x1C00]: &GB.VRAM[0x1800];
+      int8_t* bg_tile_map = (GB.LCDC & 0x08)? (int8_t*)&GB.VRAM[0x1C00]: (int8_t*)&GB.VRAM[0x1800];
       uint8_t* bg_tile_data = &GB.VRAM[0x1000];
       int i,j;
       for (j = 0; j < 32; j++)
@@ -161,9 +161,6 @@ void gbemu_ppu_draw(int cycles)
       int scanline = i / (4 * GB_LINE_TICK_COUNT);
       if(scanline > 143)
          goto finish;
-
-      if(scanline == 43)
-         fflush(stdout);
 
       int current = i - (scanline * 4 * GB_LINE_TICK_COUNT) - 80;
 
