@@ -24,28 +24,29 @@ uint8_t gbemu_read_u8(uint16_t addr)
       {
          struct
          {
-            unsigned A       :1;
-            unsigned B       :1;
-            unsigned select  :1;
-            unsigned start   :1;
-            unsigned         :4;
+            unsigned A       : 1;
+            unsigned B       : 1;
+            unsigned select  : 1;
+            unsigned start   : 1;
+            unsigned         : 4;
          };
          struct
          {
-            unsigned right   :1;
-            unsigned left    :1;
-            unsigned up      :1;
-            unsigned down    :1;
-            unsigned         :4;
+            unsigned right   : 1;
+            unsigned left    : 1;
+            unsigned up      : 1;
+            unsigned down    : 1;
+            unsigned         : 4;
          };
          struct
          {
-            unsigned                :4;
-            unsigned dpad_select    :1;
-            unsigned buttons_select :1;
+            unsigned                : 4;
+            unsigned dpad_select    : 1;
+            unsigned buttons_select : 1;
          };
          uint8_t val;
-      }gbemu_pad_t;
+      }
+      gbemu_pad_t;
 
       gbemu_pad_t gbemu_pad;
 
@@ -54,7 +55,7 @@ uint8_t gbemu_read_u8(uint16_t addr)
       gbemu_pad.val |= 0xF;
 
 
-      if(!gbemu_pad.dpad_select)
+      if (!gbemu_pad.dpad_select)
       {
          gbemu_pad.right = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT);
          gbemu_pad.left = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT);
@@ -62,7 +63,7 @@ uint8_t gbemu_read_u8(uint16_t addr)
          gbemu_pad.down = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN);
       }
 
-      if(!gbemu_pad.buttons_select)
+      if (!gbemu_pad.buttons_select)
       {
          gbemu_pad.A = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A);
          gbemu_pad.B = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B);
@@ -79,24 +80,24 @@ uint8_t gbemu_read_u8(uint16_t addr)
    }
 
    case 0xFF10: //NR10
-      return GB.MEMORY[0xFF10]|0x80;
+      return GB.MEMORY[0xFF10] | 0x80;
    case 0xFF11: //NR11
    case 0xFF16: //NR21
-      return GB.MEMORY[0xFF10]|0x3F;
+      return GB.MEMORY[0xFF10] | 0x3F;
    case 0xFF14: //NR14
    case 0xFF19: //NR24
    case 0xFF1E: //NR34
    case 0xFF23: //NR44
-      return GB.MEMORY[0xFF10]|0xBF;
+      return GB.MEMORY[0xFF10] | 0xBF;
    case 0xFF1A: //NR30
-      return GB.MEMORY[0xFF10]|0x7F;
+      return GB.MEMORY[0xFF10] | 0x7F;
    case 0xFF1C: //NR32
-      return GB.MEMORY[0xFF10]|0x9F;
+      return GB.MEMORY[0xFF10] | 0x9F;
    case 0xFF26: //NR52
    {
       uint8_t val = (GB.MEMORY[0xFF10] & 0xF0) | 0x70;
-      if((GB.APU.square1.length_counter.counter & 0x3F) ||
-         !GB.SND_regs.channels.square1.length_enable)
+      if ((GB.APU.square1.length_counter.counter & 0x3F) ||
+            !GB.SND_regs.channels.square1.length_enable)
          val |= 0x1;
 
       return val;
@@ -139,9 +140,22 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
       return;
    case 0xFF11: //NR11
       GB.MEMORY[0xFF11] = val;
-//      GB.APU.square1.length_counter = GB.SND_regs.channels.square1.length_load;
+      //      GB.APU.square1.length_counter = GB.SND_regs.channels.square1.length_load;
       GB.APU.square1.length_counter.counter = val & 0x3F;
       GB.APU.square1.length_counter.ch_enabled = true;
+      return;
+   case 0xFF14: //NR14
+      GB.MEMORY[0xFF11] = val;
+      if (val & 0x80)
+      {
+         GB.APU.square1.envelope.counter = GB.SND_regs.channels.square1.envelope_period;
+         GB.APU.square1.envelope.volume = GB.SND_regs.channels.square1.envelope_starting_volume;
+         GB.APU.square1.envelope.increment = GB.SND_regs.channels.square1.envelope_add_mode;
+
+         GB.APU.square1.sweep.frequency = GB.SND_regs.channels.square1.frequency;
+         GB.APU.square1.sweep.counter = GB.SND_regs.channels.square1.sweep_period;
+         GB.APU.square1.sweep.enabled = (GB.SND_regs.channels.square1.sweep_period && GB.SND_regs.channels.square1.sweep_shift);
+      }
       return;
    default:
       GB.MEMORY[addr] = val;
@@ -159,6 +173,7 @@ void gbemu_cpu_run(int cycles)
    
    CPU.cycles = 0;
    GB.APU.cycles = 0;
+   GB.APU.write_pos = gbemu_sound_buffer;
    int cycles_last = 0;
    int h_cycles = 0;
 next_instruction:
@@ -171,11 +186,11 @@ next_instruction:
 
    h_cycles += CPU.cycles - cycles_last;
    cycles_last = CPU.cycles;
-   if(h_cycles > GB_LINE_TICK_COUNT)
+   if (h_cycles > GB_LINE_TICK_COUNT)
    {
       h_cycles -= GB_LINE_TICK_COUNT;
       GB_LY++;
-      if(GB_LY >= GB_V_COUNT)
+      if (GB_LY >= GB_V_COUNT)
       {
          GB_LY = 0;
          goto cpu_exit;
@@ -184,12 +199,12 @@ next_instruction:
 
    GB.LCD_STAT.LCY_eq_LY_flag = (GB_LY == GB_LYC);
 
-   if(GB.LCDC & 0x80)
+   if (GB.LCDC & 0x80)
    {
-      if(GB_LY > 143)
+      if (GB_LY > 143)
          GB.IF.Vblank = 1;
 
-      if(GB_LY > 143)
+      if (GB_LY > 143)
          GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE1_VBLANK;
       else if (h_cycles > (40 + 20))
          GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE0_HBLANK;
@@ -200,37 +215,37 @@ next_instruction:
 
    }
 
-   if(CPU.IME)
+   if (CPU.IME)
    {
-      if((GB.IF.Vblank & GB.IE.Vblank) && (GB.LCDC & 0x80))
+      if ((GB.IF.Vblank & GB.IE.Vblank) && (GB.LCDC & 0x80))
       {
          CPU.IME = 0;
          GB.IF.Vblank = 0;
          CPU_INT(0x40);
       }
-      else if((GB.IF.LCD_stat & GB.IE.LCD_stat) &&
-         ((GB.LCD_STAT.VBlank_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE1_VBLANK)) ||
-          (GB.LCD_STAT.HBlank_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE0_HBLANK)) ||
-          (GB.LCD_STAT.OAM_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE2_OAM_busy)) ||
-          (GB.LCD_STAT.LCY_eq_LY_IE && GB.LCD_STAT.LCY_eq_LY_flag)))
+      else if ((GB.IF.LCD_stat & GB.IE.LCD_stat) &&
+               ((GB.LCD_STAT.VBlank_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE1_VBLANK)) ||
+                (GB.LCD_STAT.HBlank_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE0_HBLANK)) ||
+                (GB.LCD_STAT.OAM_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE2_OAM_busy)) ||
+                (GB.LCD_STAT.LCY_eq_LY_IE && GB.LCD_STAT.LCY_eq_LY_flag)))
       {
          CPU.IME = 0;
          GB.IF.LCD_stat = 0;
          CPU_INT(0x48);
       }
-      else if(GB.IF.timer & GB.IE.serial)
+      else if (GB.IF.timer & GB.IE.serial)
       {
          CPU.IME = 0;
          GB.IF.serial = 0;
          CPU_INT(0x50);
       }
-      else if(GB.IF.serial & GB.IE.serial)
+      else if (GB.IF.serial & GB.IE.serial)
       {
          CPU.IME = 0;
          GB.IF.serial = 0;
          CPU_INT(0x58);
       }
-      else if(GB.IF.joypad & GB.IE.joypad)
+      else if (GB.IF.joypad & GB.IE.joypad)
       {
          CPU.IME = 0;
          GB.IF.joypad = 0;
@@ -239,10 +254,10 @@ next_instruction:
    }
 
 
-//#define DISASM
-//#define SKIP_COUNT 0x7490
-//#define SKIP_COUNT 0xEEE9
-//#define SKIP_COUNT 0x0001803F
+   //#define DISASM
+   //#define SKIP_COUNT 0x7490
+   //#define SKIP_COUNT 0xEEE9
+   //#define SKIP_COUNT 0x0001803F
 #define SKIP_COUNT 0xFFFFFFFF
 
 
@@ -251,19 +266,19 @@ next_instruction:
 #ifdef DISASM
    static bool force_disasm = false;
 #endif
-   next_instruction_nocheck:
+next_instruction_nocheck:
 #ifdef DISASM
-//   if(CPU.PC == 0x658F)
-   if(CPU.PC == 0x0339)
+   //   if(CPU.PC == 0x658F)
+   if (CPU.PC == 0x0339)
       force_disasm = true;
 
    if (total_exec > SKIP_COUNT)
    {
       force_disasm = true;
-      printf("0x%08X: ",total_exec);
+      printf("0x%08X: ", total_exec);
    }
 
-   if(force_disasm)
+   if (force_disasm)
    {
       gbemu_disasm_current(&CPU, true);
       fflush(stdout);
@@ -271,8 +286,8 @@ next_instruction:
 #endif
 
    total_exec++;
-//   if(GB.MEMORY[0xFF44] == 0x94)
-//      fflush(stdout);
+   //   if(GB.MEMORY[0xFF44] == 0x94)
+   //      fflush(stdout);
 
    switch (GB.MEMORY[CPU.PC++])
    {
@@ -1392,22 +1407,22 @@ next_instruction:
 
    
    default:
-   unknown_opcode:
+unknown_opcode:
       {
-      extern retro_environment_t environ_cb;
-      retro_sleep(10);
-      printf("unknown opcode : 0x%02X\n", GB.MEMORY[CPU.PC - 1]);
-      fflush(stdout);
-//      DEBUG_BREAK();
+         extern retro_environment_t environ_cb;
+         retro_sleep(10);
+         printf("unknown opcode : 0x%02X\n", GB.MEMORY[CPU.PC - 1]);
+         fflush(stdout);
+         //      DEBUG_BREAK();
 
-      if (environ_cb)
-         environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
+         if (environ_cb)
+            environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
 #ifdef PERF_TEST
-      extern struct retro_perf_callback perf_cb;
-      perf_cb.perf_log();
+         extern struct retro_perf_callback perf_cb;
+         perf_cb.perf_log();
 #endif
-//      return;
-      exit(0);
+         //      return;
+         exit(0);
       }
       break;
    }

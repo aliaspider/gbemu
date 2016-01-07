@@ -135,7 +135,7 @@ void retro_get_system_av_info(struct retro_system_av_info* info)
    info->geometry.max_height = GBEMU_DRAWBUFFER_H;
    info->geometry.aspect_ratio = 0.0;
    info->timing.fps = 60.0;
-   info->timing.sample_rate = (double) GB_FRAME_TICK_COUNT * 60.0 / (double) GBEMU_AUDIO_DECIMATION_RATE;
+   info->timing.sample_rate = (double) GB_FRAME_TICK_COUNT * 4 * 60.0 / (double) GBEMU_AUDIO_DECIMATION_RATE;
 }
 
 
@@ -184,6 +184,8 @@ void retro_run(void)
    gbemu_dump_memory();
 #endif
 
+   audio_batch_cb(gbemu_sound_buffer, (GB.APU.write_pos - gbemu_sound_buffer) >> 1);
+   printf("samples played : %i\n", (GB.APU.write_pos - gbemu_sound_buffer) >> 1);
    video_cb(gbemu_frame, GBEMU_DRAWBUFFER_W, GBEMU_DRAWBUFFER_H, GBEMU_DRAWBUFFER_W * 2);
 //   DEBUG_HOLD();
 //   printf("frame : %i\n", frames);

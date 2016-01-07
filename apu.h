@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define GBEMU_AUDIO_DECIMATION_RATE 32
+#define GBEMU_AUDIO_DECIMATION_RATE 128
 
 typedef struct __attribute__((packed))
 {
@@ -49,17 +49,17 @@ typedef struct __attribute__((packed))
       {
          struct __attribute__((packed))
          {
+            unsigned sweep_shift : 3;
+            unsigned sweep_negate : 1;
             unsigned sweep_period : 3;
-            unsigned negate : 1;
-            unsigned shift : 3;
             unsigned : 1;
 
             unsigned length_load : 6;
             unsigned duty : 2;
 
-            unsigned period : 3;
+            unsigned envelope_period : 3;
             unsigned envelope_add_mode : 1;
-            unsigned starting_volume : 4;
+            unsigned envelope_starting_volume : 4;
 
             unsigned frequency : 11;
             unsigned : 3;
@@ -74,9 +74,9 @@ typedef struct __attribute__((packed))
             unsigned length_load : 6;
             unsigned duty : 2;
 
-            unsigned period : 3;
+            unsigned envelope_period : 3;
             unsigned envelope_add_mode : 1;
-            unsigned starting_volume : 4;
+            unsigned envelope_starting_volume : 4;
 
             unsigned frequency : 11;
             unsigned : 3;
@@ -108,9 +108,9 @@ typedef struct __attribute__((packed))
             unsigned length_load : 6;
             unsigned : 2;
 
-            unsigned period : 3;
+            unsigned envelope_period : 3;
             unsigned envelope_add_mode : 1;
-            unsigned starting_volume : 4;
+            unsigned envelope_starting_volume : 4;
 
             unsigned divisor_code : 3;
             unsigned LFSR_width_mode : 1;
@@ -205,6 +205,7 @@ typedef struct
       {
          int counter;
          int volume;
+         bool increment;
       } envelope;
       struct
       {
@@ -213,16 +214,17 @@ typedef struct
          int frequency;
       } sweep;
       int counter;
-      int duty;
-      int last_value;
+      int pos;
+      int value;
    } square1;
 
 
    int counter;
    int cycles;
+   uint16_t* write_pos;
 } gbemu_apu_t;
 
-
+extern uint16_t gbemu_sound_buffer[0x40000 / GBEMU_AUDIO_DECIMATION_RATE];
 void gbemu_apu_run(int target_cycles);
 
 
