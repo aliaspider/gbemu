@@ -304,6 +304,7 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU, bool dump_state)
    case 0xFC:
    case 0xFD:
       op.label = "INVALID";
+      break;
    default:
       switch (op.m11000000)
       {
