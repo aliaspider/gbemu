@@ -109,21 +109,6 @@ void gbemu_apu_run(int target_cycles)
                      GB.APU.square2.envelope.volume--;
                }
             }
-            if ((GB.APU.wave.envelope.counter) &&
-                  !(GB.APU.wave.envelope.counter & 0x8))
-            {
-               GB.APU.wave.envelope.counter--;
-               if (GB.APU.wave.envelope.increment)
-               {
-                  if (GB.APU.wave.envelope.volume != 0xF)
-                     GB.APU.wave.envelope.volume++;
-               }
-               else
-               {
-                  if (GB.APU.wave.envelope.volume)
-                     GB.APU.wave.envelope.volume--;
-               }
-            }
             if ((GB.APU.noise.envelope.counter) &&
                   !(GB.APU.noise.envelope.counter & 0x8))
             {
@@ -174,21 +159,41 @@ void gbemu_apu_run(int target_cycles)
          }
 
       }
-      if (!(GB.APU.counter & (GBEMU_AUDIO_DECIMATION_RATE - 1)))
+      if (!(GB.APU.counter & 0xF))
       {
-         uint16_t l = 0;
-         uint16_t r = 0;
+         GB.APU.wave.counter++;
+         if (GB.APU.wave.counter & 0x800)
+         {
+            GB.APU.wave.counter = GB.SND_regs.channels.wave.frequency;
+            GB.APU.wave.pos ++;
+            GB.APU.wave.pos &= 0x1F;
+            GB.APU.wave.value = ((GB.SND_regs.WAVE_TABLE[GB.APU.wave.pos >> 1] >> ((GB.APU.wave.pos & 0x1) * 0x4)) & 0xF)
+                  >> ((unsigned)GB.SND_regs.channels.wave.volume_code - 1);
+         }
+
+      }
+      static int l = 0;
+      static int r = 0;
          if(GB.APU.square1.length_counter.ch_enabled)
             l += (GB.APU.square1.value * GB.APU.square1.envelope.volume);
 //         l += GB.APU.square1.value;
          if(GB.APU.square2.length_counter.ch_enabled)
            l += (GB.APU.square2.value * GB.APU.square2.envelope.volume);
-//         l += GB.APU.square1.value;
+//      l += GB.APU.square2.value;
+         if(GB.APU.wave.length_counter.ch_enabled)
+           l += (GB.APU.wave.value << 4);
+      if (!(GB.APU.counter & (GBEMU_AUDIO_DECIMATION_RATE - 1)))
+      {
 
          l <<= 12;
+         l -= (1 << 11);
+         l /= GBEMU_AUDIO_DECIMATION_RATE;
          r = l;
          *GB.APU.write_pos++ = l;
          *GB.APU.write_pos++ = r;
+
+         l = 0;
+         r = 0;
       }
 
    }

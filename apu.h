@@ -260,12 +260,6 @@ typedef struct
       struct
       {
          int counter;
-         int volume;
-         bool increment;
-      } envelope;
-      struct
-      {
-         int counter;
          bool enabled;
          int frequency;
       } sweep;
