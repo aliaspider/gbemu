@@ -15,9 +15,9 @@
 uint8_t gbemu_read_u8(uint16_t addr)
 {
 
-   if ((GB.cart_info->type == CART_TYPE_MBC1) )
+   if ((GB.MBC.type == CART_TYPE_MBC1) )
    {
-      if ((addr >= 0x2000) && (addr < 0x8000))
+      if ((addr >= 0x4000) && (addr < 0x8000))
          return GB.MBC.active_ROM_bank[addr & 0x3FFF];
       else if ((addr >= 0xA000) && (addr < 0xC000))
       {
@@ -144,7 +144,7 @@ uint8_t gbemu_read_u8(uint16_t addr)
 
 void gbemu_write_u8(uint16_t addr, uint8_t val)
 {
-   if ((GB.cart_info->type == CART_TYPE_MBC1) && (addr < 0x8000))
+   if ((GB.MBC.type == CART_TYPE_MBC1) && (addr < 0x8000))
    {
       if (addr < 0x2000)
          GB.MBC.SRAM_enable = ((val & 0xF) == 0xA);
@@ -366,11 +366,12 @@ next_instruction:
    }
 
 
-   //#define DISASM
+//#define DISASM
    //#define SKIP_COUNT 0x7490
    //#define SKIP_COUNT 0xEEE9
    //#define SKIP_COUNT 0x0001803F
-#define SKIP_COUNT 0xFFFFFFFF
+//#define SKIP_COUNT 0xFFFFFFFF
+#define SKIP_COUNT 0x00000000
 
 
 
@@ -928,13 +929,7 @@ next_instruction_nocheck:
    }
 
    case 0xEA:
-   {
-      uint16_t addr = GB.MEMORY[CPU.PC++];
-      addr |= GB.MEMORY[CPU.PC++] << 8;
-      GB.MEMORY[addr] = CPU.A;
-      CPU.cycles += 4;
-      goto next_instruction;
-   }
+      CPU_LD_addr16_A();
    // LD A,(C)
    case 0xF2:
       CPU.A = GB.MEMORY[CPU.C | 0xFF00];
@@ -1516,7 +1511,36 @@ next_instruction_nocheck:
       }
    }
 
-   
+   case 0xD3:
+   case 0xE3:
+   case 0xE4:
+   case 0xF4:
+   case 0xDB:
+   case 0xEB:
+   case 0xEC:
+   case 0xFC:
+   case 0xDD:
+   case 0xED:
+   case 0xFD:
+invalid_opcode:
+      {
+         extern retro_environment_t environ_cb;
+         retro_sleep(10);
+         printf("invalid opcode : 0x%02X\n", GB.MEMORY[CPU.PC - 1]);
+         fflush(stdout);
+         //      DEBUG_BREAK();
+
+         if (environ_cb)
+            environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
+#ifdef PERF_TEST
+         extern struct retro_perf_callback perf_cb;
+         perf_cb.perf_log();
+#endif
+         //      return;
+         exit(0);
+      }
+      break;
+
 
    default:
 unknown_opcode:

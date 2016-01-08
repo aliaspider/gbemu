@@ -212,6 +212,9 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
    GB.MBC.active_ROM_bank = GB.MBC.ROM_banks[0][1];
    GB.MBC.active_SRAM_bank = GB.MBC.SRAM_banks[0];
 
+   if (GB.cart_info->type != CART_TYPE_GENERIC)
+      GB.MBC.type = CART_TYPE_MBC1;
+
    return true;
 }
 

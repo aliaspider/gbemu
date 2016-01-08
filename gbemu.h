@@ -133,7 +133,7 @@ typedef struct
       uint8_t* active_ROM_bank;
       uint8_t* active_SRAM_bank;
 
-
+      catridge_type_enum type; //duplicate
 
    }MBC;
 

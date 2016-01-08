@@ -65,17 +65,25 @@
       CPU_exec_next();\
    }while(0)
 
-#define CPU_LD_addr16_r(reg, cycles) \
+#define CPU_LD_addr16_A() \
    do{\
       uint16_t addr = GB_READ_U8(REG_PC++);\
       addr |= GB_READ_U8(REG_PC++) << 8;\
-      GB_WRITE_U8(addr, reg);\
-      CPU_cycles_add(cycles);\
+      GB_WRITE_U8(addr, REG_A);\
+      CPU_cycles_add(4);\
       CPU_exec_next();\
    }while(0)
 
-#define CPU_LD_addr16_SP() CPU_LD_addr16_r(REG_SP, 5)
 
+#define CPU_LD_addr16_SP() \
+   do{\
+      uint16_t addr = GB_READ_U8(REG_PC++);\
+      addr |= GB_READ_U8(REG_PC++) << 8;\
+      GB_WRITE_U8(addr, (REG_SP & 0xFF));\
+      GB_WRITE_U8((addr + 1), (REG_SP >> 8));\
+      CPU_cycles_add(5);\
+      CPU_exec_next();\
+   }while(0)
 
 #define CPU_LD_r0_r1(reg0, reg1) \
    reg0 = reg1;\
