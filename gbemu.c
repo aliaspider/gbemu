@@ -77,11 +77,11 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
 
    gbemu_sanity_checks();
 
-   const cartridge_info_t* cart_info = gbemu_get_cart_info(GB.HEADER.cart_info_id);
-
    if(size > sizeof(GB.ROM))
       size = sizeof(GB.ROM);
    memcpy(GB.ROM, data, size);
+
+   const cartridge_info_t* cart_info = gbemu_get_cart_info(GB.HEADER.cart_info_id);
 
    if(bios_data)
    {
