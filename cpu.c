@@ -963,6 +963,15 @@ next_instruction_nocheck:
       CPU.cycles += 2;
       CPU_exec_next();
 
+   case 0xC7:
+      CPU_RST(0x00);
+   case 0xD7:
+      CPU_RST(0x10);
+   case 0xE7:
+      CPU_RST(0x20);
+   case 0xF7:
+      CPU_RST(0x30);
+
    case 0xCF:
       CPU_RST(0x08);
    case 0xDF:
