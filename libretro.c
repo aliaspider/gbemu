@@ -185,7 +185,7 @@ void retro_run(void)
 #endif
 
    audio_batch_cb(gbemu_sound_buffer, (GB.APU.write_pos - gbemu_sound_buffer) >> 1);
-   printf("samples played : %i\n", (GB.APU.write_pos - gbemu_sound_buffer) >> 1);
+//   printf("samples played : %i\n", (GB.APU.write_pos - gbemu_sound_buffer) >> 1);
    video_cb(gbemu_frame, GBEMU_DRAWBUFFER_W, GBEMU_DRAWBUFFER_H, GBEMU_DRAWBUFFER_W * 2);
 //   DEBUG_HOLD();
 //   printf("frame : %i\n", frames);
