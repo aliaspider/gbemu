@@ -937,31 +937,31 @@ next_instruction_nocheck:
 
    case 0xFA:
    {
-      uint16_t addr = GB.MEMORY[CPU.PC++];
-      addr |= GB.MEMORY[CPU.PC++] << 8;
-      CPU.A = GB.MEMORY[addr];
+      uint16_t addr = GB_READ_U8(CPU.PC++);
+      addr |= GB_READ_U8(CPU.PC++) << 8;
+      CPU.A = GB_READ_U8(addr);
       CPU.cycles += 3;
-      goto next_instruction;
+      CPU_exec_next();
    }
 
    case 0xEA:
       CPU_LD_addr16_A();
    // LD A,(C)
    case 0xF2:
-      CPU.A = GB.MEMORY[CPU.C | 0xFF00];
+      CPU.A = GB_READ_U8(CPU.C | 0xFF00);
       CPU.cycles += 2;
-      goto next_instruction;
+      CPU_exec_next();
    // LD (C), A
    case 0xE2:
-      GB.MEMORY[CPU.C | 0xFF00] = CPU.A;
+      GB_WRITE_U8((CPU.C | 0xFF00), CPU.A);
       CPU.cycles += 2;
-      goto next_instruction;
+      CPU_exec_next();
 
    // LD SP, HL
    case 0xF9:
       CPU.SP = CPU.HL;
       CPU.cycles += 2;
-      goto next_instruction;
+      CPU_exec_next();
 
    case 0xCF:
       CPU_RST(0x08);
