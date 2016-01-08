@@ -46,8 +46,8 @@ void gbemu_apu_run(int target_cycles)
                   GB.APU.noise.length_counter.ch_enabled = false;
             }
          }
-         //if (0)
-         //if (GB.APU.frame_sequencer.sweep_seq == GBEMU_TIMER_SWEEP_TICK_VAL)
+
+         //         if (GB.APU.frame_sequencer.sweep_seq == GBEMU_TIMER_SWEEP_TICK_VAL)
          if ((GB.APU.frame_sequencer.counter & 0x3) == GBEMU_TIMER_SWEEP_TICK_VAL)
          {
 
@@ -127,7 +127,7 @@ void gbemu_apu_run(int target_cycles)
          }
       }
 
-      if (!(GB.APU.counter & 0x1F))
+      if (!(GB.APU.counter & 0x03))
       {
          /*  duty                  --  Pos --
           *  ----   0b000 0b001 0b010 0b011 0b100 0b101 0b110 0b111
@@ -168,25 +168,25 @@ void gbemu_apu_run(int target_cycles)
             GB.APU.wave.pos ++;
             GB.APU.wave.pos &= 0x1F;
             GB.APU.wave.value = ((GB.SND_regs.WAVE_TABLE[GB.APU.wave.pos >> 1] >> ((GB.APU.wave.pos & 0x1) * 0x4)) & 0xF)
-                  >> ((unsigned)GB.SND_regs.channels.wave.volume_code - 1);
+                                >> ((unsigned)GB.SND_regs.channels.wave.volume_code - 1);
          }
 
       }
       static int l = 0;
       static int r = 0;
-         if(GB.APU.square1.length_counter.ch_enabled)
-            l += (GB.APU.square1.value * GB.APU.square1.envelope.volume);
-//         l += GB.APU.square1.value;
-         if(GB.APU.square2.length_counter.ch_enabled)
-           l += (GB.APU.square2.value * GB.APU.square2.envelope.volume);
+//      if(GB.APU.square1.length_counter.ch_enabled)
+//         l += (GB.APU.square1.value * GB.APU.square1.envelope.volume);
+//      l += GB.APU.square1.value;
+//      if(GB.APU.square2.length_counter.ch_enabled)
+         l += (GB.APU.square2.value * GB.APU.square2.envelope.volume);
 //      l += GB.APU.square2.value;
-         if(GB.APU.wave.length_counter.ch_enabled)
-           l += (GB.APU.wave.value << 4);
+//         if(GB.APU.wave.length_counter.ch_enabled)
+//           l += (GB.APU.wave.value << 4);
       if (!(GB.APU.counter & (GBEMU_AUDIO_DECIMATION_RATE - 1)))
       {
 
-         l <<= 12;
-         l -= (1 << 11);
+         l <<= 11;
+         l -= (1 << 10);
          l /= GBEMU_AUDIO_DECIMATION_RATE;
          r = l;
          *GB.APU.write_pos++ = l;
