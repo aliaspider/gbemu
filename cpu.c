@@ -206,6 +206,8 @@ next_instruction:
    gbemu_ppu_draw(CPU.cycles);
    gbemu_apu_run(CPU.cycles);
 
+   CPU.timer.ticks += CPU.cycles - cycles_last;
+
    if (CPU.cycles > cycles)
       goto cpu_exit;
 
@@ -239,6 +241,31 @@ next_instruction:
          GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE2_OAM_busy;
 
    }
+
+   while (CPU.timer.ticks_last < CPU.timer.ticks)
+   {
+      CPU.timer.ticks_last++;
+      if(!(CPU.timer.ticks_last & 0x3F))
+         GB.DIV++;
+
+      if(GB.TAC.active)
+      {
+         /* 0: 0xFF
+          * 1: 0x03
+          * 2: 0x0F
+          * 3: 0x3F */
+         if(!(CPU.timer.ticks_last & ((0x3F0F03FF >> GB.TAC.clock_select) & 0xFF)))
+         {
+            GB.TIMA++;
+            if(!GB.TIMA)
+            {
+               GB.TIMA = GB.TMA;
+               GB.IF.timer = 1;
+            }
+         }
+      }
+   }
+
 
    if (CPU.IME)
    {

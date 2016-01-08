@@ -37,7 +37,7 @@ typedef struct
             };
             uint8_t ROM[0x8000];
             gbemu_rom_header_t HEADER;
-         };         
+         };
          uint8_t VRAM[0x2000];
          uint8_t cart_RAM[0x2000];
          union
@@ -55,40 +55,57 @@ typedef struct
          union
          {
             uint8_t IO[0x80];  // @0xFF00
-            struct
+            struct __attribute__((packed))
             {
-               uint8_t IO_unused0[0xF];
+               uint8_t JOYP;
+               uint8_t SB; // serial data
+               uint8_t SC; // serial control
+               unsigned : 8;
+               uint8_t DIV; // Divider Register
+               uint8_t TIMA; // Timer Counter;
+               uint8_t TMA; // Timer Modulo;
                struct __attribute__((packed))
                {
-                  unsigned Vblank   :1;
-                  unsigned LCD_stat :1;
-                  unsigned timer    :1;
-                  unsigned serial   :1;
-                  unsigned joypad   :1;
-               }IF;
+                  unsigned clock_select : 2;
+                  unsigned active : 1;
+               }
+               TAC; // Timer Control;
+
+               uint8_t IO_unused0[0x7];
+
+               struct __attribute__((packed))
+               {
+                  unsigned Vblank   : 1;
+                  unsigned LCD_stat : 1;
+                  unsigned timer    : 1;
+                  unsigned serial   : 1;
+                  unsigned joypad   : 1;
+               }
+               IF;
                gbemu_sound_regs_t SND_regs;
                uint8_t LCDC;
                struct __attribute__((packed))
                {
-                  unsigned mode_flag      :2;
-                  unsigned LCY_eq_LY_flag :1;
-                  unsigned HBlank_IE      :1;
-                  unsigned VBlank_IE      :1;
-                  unsigned OAM_IE         :1;
-                  unsigned LCY_eq_LY_IE   :1;
-               }LCD_STAT;
+                  unsigned mode_flag      : 2;
+                  unsigned LCY_eq_LY_flag : 1;
+                  unsigned HBlank_IE      : 1;
+                  unsigned VBlank_IE      : 1;
+                  unsigned OAM_IE         : 1;
+                  unsigned LCY_eq_LY_IE   : 1;
+               }
+               LCD_STAT;
             };
          };
 
          uint8_t HRAM[0x7F];
          struct __attribute__((packed))
          {
-            unsigned Vblank   :1;
-            unsigned LCD_stat :1;
-            unsigned timer    :1;
-            unsigned serial   :1;
-            unsigned joypad   :1;
-         }IE;
+            unsigned Vblank   : 1;
+            unsigned LCD_stat : 1;
+            unsigned timer    : 1;
+            unsigned serial   : 1;
+            unsigned joypad   : 1;
+         } IE;
       };
       uint8_t MEMORY [0x10000];
       int8_t  sMEMORY[0x10000];
@@ -96,7 +113,7 @@ typedef struct
    uint8_t BIOS[0x100];
    gbemu_cpu_t CPU;
    gbemu_apu_t APU;
-}gbemu_state_t;
+} gbemu_state_t;
 
 extern gbemu_state_t GB;
 

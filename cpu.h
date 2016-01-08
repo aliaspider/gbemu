@@ -57,6 +57,11 @@ typedef struct
    uint16_t PC;
    int cycles;
    int IME;
+   struct
+   {
+      int ticks;
+      int ticks_last;
+   }timer;
 }gbemu_cpu_t;
 
 void gbemu_cpu_run(int cycles);
