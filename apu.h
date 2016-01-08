@@ -217,6 +217,90 @@ typedef struct
       int pos;
       int value;
    } square1;
+   struct
+   {
+      struct
+      {
+         int counter;
+         int period;
+      } timer;
+      struct
+      {
+         int counter;
+         bool ch_enabled;
+      } length_counter;
+      struct
+      {
+         int counter;
+         int volume;
+         bool increment;
+      } envelope;
+      struct
+      {
+         int counter;
+         bool enabled;
+         int frequency;
+      } sweep;
+      int counter;
+      int pos;
+      int value;
+   } square2;
+   struct
+   {
+      struct
+      {
+         int counter;
+         int period;
+      } timer;
+      struct
+      {
+         int counter;
+         bool ch_enabled;
+      } length_counter;
+      struct
+      {
+         int counter;
+         int volume;
+         bool increment;
+      } envelope;
+      struct
+      {
+         int counter;
+         bool enabled;
+         int frequency;
+      } sweep;
+      int counter;
+      int pos;
+      int value;
+   } wave;
+   struct
+   {
+      struct
+      {
+         int counter;
+         int period;
+      } timer;
+      struct
+      {
+         int counter;
+         bool ch_enabled;
+      } length_counter;
+      struct
+      {
+         int counter;
+         int volume;
+         bool increment;
+      } envelope;
+      struct
+      {
+         int counter;
+         bool enabled;
+         int frequency;
+      } sweep;
+      int counter;
+      int pos;
+      int value;
+   } noise;
 
 
    int counter;

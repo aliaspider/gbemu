@@ -157,6 +157,31 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
          GB.APU.square1.sweep.enabled = (GB.SND_regs.channels.square1.sweep_period && GB.SND_regs.channels.square1.sweep_shift);
       }
       return;
+   case 0xFF19: //NR24
+      GB.MEMORY[0xFF19] = val;
+      if (val & 0x80)
+      {
+         GB.APU.square2.envelope.counter = GB.SND_regs.channels.square2.envelope_period;
+         GB.APU.square2.envelope.volume = GB.SND_regs.channels.square2.envelope_starting_volume;
+         GB.APU.square2.envelope.increment = GB.SND_regs.channels.square2.envelope_add_mode;
+      }
+      return;
+   case 0xFF1E: //NR34
+      GB.MEMORY[0xFF1E] = val;
+//      if (val & 0x80)
+//      {
+//         GB.APU.wave.envelope.counter = GB.SND_regs.channels.wave.volume_code;
+//      }
+      return;
+   case 0xFF23: //NR44
+      GB.MEMORY[0xFF23] = val;
+      if (val & 0x80)
+      {
+         GB.APU.noise.envelope.counter = GB.SND_regs.channels.noise.envelope_period;
+         GB.APU.noise.envelope.volume = GB.SND_regs.channels.noise.envelope_starting_volume;
+         GB.APU.noise.envelope.increment = GB.SND_regs.channels.noise.envelope_add_mode;
+      }
+      return;
    default:
       GB.MEMORY[addr] = val;
    }
