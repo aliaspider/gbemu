@@ -77,11 +77,16 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
 
    gbemu_sanity_checks();
 
+   if(size > sizeof(GB.MBC.ROM))
+      size = sizeof(GB.MBC.ROM);
+   memcpy(GB.MBC.ROM, data, size);
+
    if(size > sizeof(GB.ROM))
       size = sizeof(GB.ROM);
    memcpy(GB.ROM, data, size);
 
-   const cartridge_info_t* cart_info = gbemu_get_cart_info(GB.HEADER.cart_info_id);
+   GB.cart_info = gbemu_get_cart_info(GB.HEADER.cart_info_id);
+
 
    if(bios_data)
    {
@@ -128,9 +133,9 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
    printf("super gameboy flag : 0x%02X\n", (uint32_t)GB.HEADER.sgb_flag);
 
    printf("cart type : 0x%02X --> %s%s%s%s%s\n",(uint32_t)GB.HEADER.cart_info_id,
-          gbemu_get_cart_type_ident(cart_info->type), cart_info->RAM?"+RAM":"",
-          cart_info->BATTERY?"+BATTERY":"", cart_info->TIMER?"+TIMER":"",
-          cart_info->RUMBLE?"+RUMBLE":"");
+          gbemu_get_cart_type_ident(GB.cart_info->type), GB.cart_info->RAM?"+RAM":"",
+          GB.cart_info->BATTERY?"+BATTERY":"", GB.cart_info->TIMER?"+TIMER":"",
+          GB.cart_info->RUMBLE?"+RUMBLE":"");
    printf("cart type : 0x%02X\n", (uint32_t)GB.HEADER.cart_info_id);
    printf("rom size : 0x%X --> 0x%X(%u, %u banks)\n", GB.HEADER.rom_size_id,
           gbemu_get_rom_size(GB.HEADER.rom_size_id),
@@ -202,6 +207,10 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
    GB.CPU.cycles = 0;
    GB.CPU.interrupts_enabled = 1;
 #endif
+
+
+   GB.MBC.active_ROM_bank = GB.MBC.ROM_banks[0][1];
+   GB.MBC.active_SRAM_bank = GB.MBC.SRAM_banks[0];
 
    return true;
 }

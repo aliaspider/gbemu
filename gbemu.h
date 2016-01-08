@@ -108,11 +108,35 @@ typedef struct
          } IE;
       };
       uint8_t MEMORY [0x10000];
-      int8_t  sMEMORY[0x10000];
+      int8_t  sMEMORY[0x10000];      
    };
    uint8_t BIOS[0x100];
+   const cartridge_info_t* cart_info;
    gbemu_cpu_t CPU;
    gbemu_apu_t APU;
+   struct
+   {
+      bool SRAM_banking_mode;
+      bool SRAM_enable;
+      uint8_t bank_id_low;
+      uint8_t bank_id_high;
+      union
+      {
+         uint8_t ROM_banks[0x4][0x20][0x4000];
+         uint8_t ROM[0x200000];
+      };
+      union
+      {
+         uint8_t SRAM_banks[0x4][0x2000];
+         uint8_t SRAM[0x8000];
+      };
+      uint8_t* active_ROM_bank;
+      uint8_t* active_SRAM_bank;
+
+
+
+   }MBC;
+
 } gbemu_state_t;
 
 extern gbemu_state_t GB;

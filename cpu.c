@@ -14,6 +14,20 @@
 
 uint8_t gbemu_read_u8(uint16_t addr)
 {
+
+   if ((GB.cart_info->type == CART_TYPE_MBC1) )
+   {
+      if ((addr >= 0x2000) && (addr < 0x8000))
+         return GB.MBC.active_ROM_bank[addr & 0x3FFF];
+      else if ((addr >= 0xA000) && (addr < 0xC000))
+      {
+         if (GB.MBC.SRAM_enable)
+            return GB.MBC.active_SRAM_bank[addr & 0x3FFF];
+         else
+            return 0x00;
+      }
+   }
+
    switch (addr)
    {
    case 0xFF00:
@@ -130,6 +144,50 @@ uint8_t gbemu_read_u8(uint16_t addr)
 
 void gbemu_write_u8(uint16_t addr, uint8_t val)
 {
+   if ((GB.cart_info->type == CART_TYPE_MBC1) && (addr < 0x8000))
+   {
+      if (addr < 0x2000)
+         GB.MBC.SRAM_enable = ((val & 0xF) == 0xA);
+      else if (addr < 0x4000)
+      {
+         GB.MBC.bank_id_low = val & 0x1F;
+
+         if (!GB.MBC.bank_id_low)
+            GB.MBC.bank_id_low = 0x1;
+
+         if (GB.MBC.SRAM_banking_mode)
+            GB.MBC.active_ROM_bank = GB.MBC.ROM_banks[0][GB.MBC.bank_id_low];
+         else
+            GB.MBC.active_ROM_bank = GB.MBC.ROM_banks[GB.MBC.bank_id_high][GB.MBC.bank_id_low];
+
+      }
+      else if (addr < 0x6000)
+      {
+         GB.MBC.bank_id_high = val & 0x3;
+         if (GB.MBC.SRAM_banking_mode)
+         {
+            GB.MBC.active_SRAM_bank = GB.MBC.SRAM_banks[GB.MBC.bank_id_high];
+//            GB.MBC.active_ROM_bank = GB.MBC.ROM_banks[0][GB.MBC.bank_id_low];
+         }
+         else
+         {
+//            GB.MBC.active_SRAM_bank = GB.MBC.SRAM_banks[0];
+            GB.MBC.active_ROM_bank = GB.MBC.ROM_banks[GB.MBC.bank_id_high][GB.MBC.bank_id_low];
+         }
+
+      }
+      else
+      {
+         GB.MBC.SRAM_banking_mode = val & 0x1;
+         if (GB.MBC.SRAM_banking_mode)
+            GB.MBC.active_ROM_bank = GB.MBC.ROM_banks[0][GB.MBC.bank_id_low];
+         else
+            GB.MBC.active_SRAM_bank = GB.MBC.SRAM_banks[0];
+      }
+
+      return;
+   }
+
    switch (addr)
    {
    case 0xFF00:
@@ -168,10 +226,10 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
       return;
    case 0xFF1E: //NR34
       GB.MEMORY[0xFF1E] = val;
-//      if (val & 0x80)
-//      {
-//         GB.APU.wave.envelope.counter = GB.SND_regs.channels.wave.volume_code;
-//      }
+      //      if (val & 0x80)
+      //      {
+      //         GB.APU.wave.envelope.counter = GB.SND_regs.channels.wave.volume_code;
+      //      }
       return;
    case 0xFF23: //NR44
       GB.MEMORY[0xFF23] = val;
@@ -183,6 +241,8 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
       }
       return;
    default:
+      if (addr < 0x8000)
+         return;
       GB.MEMORY[addr] = val;
    }
 }
@@ -245,19 +305,19 @@ next_instruction:
    while (CPU.timer.ticks_last < CPU.timer.ticks)
    {
       CPU.timer.ticks_last++;
-      if(!(CPU.timer.ticks_last & 0x3F))
+      if (!(CPU.timer.ticks_last & 0x3F))
          GB.DIV++;
 
-      if(GB.TAC.active)
+      if (GB.TAC.active)
       {
          /* 0: 0xFF
           * 1: 0x03
           * 2: 0x0F
           * 3: 0x3F */
-         if(!(CPU.timer.ticks_last & ((0x3F0F03FF >> GB.TAC.clock_select) & 0xFF)))
+         if (!(CPU.timer.ticks_last & ((0x3F0F03FF >> GB.TAC.clock_select) & 0xFF)))
          {
             GB.TIMA++;
-            if(!GB.TIMA)
+            if (!GB.TIMA)
             {
                GB.TIMA = GB.TMA;
                GB.IF.timer = 1;
@@ -1456,8 +1516,8 @@ next_instruction_nocheck:
       }
    }
 
-
    
+
    default:
 unknown_opcode:
       {
