@@ -36,7 +36,7 @@ void gbemu_apu_run(int target_cycles)
             if (GB.SND_regs.channels.wave.length_enable)
             {
                GB.APU.wave.length_counter.counter++;
-               if (GB.APU.wave.length_counter.counter & 0x40)
+               if (GB.APU.wave.length_counter.counter & 0x100)
                   GB.APU.wave.length_counter.ch_enabled = false;
             }
             if (GB.SND_regs.channels.noise.length_enable)
@@ -181,7 +181,7 @@ void gbemu_apu_run(int target_cycles)
          l += (GB.APU.square2.value * GB.APU.square2.envelope.volume);
 //      l += GB.APU.square2.value;
          if(GB.APU.wave.length_counter.ch_enabled)
-           l += (GB.APU.wave.value);
+           l += (GB.APU.wave.value >> 1);
       if (!(GB.APU.counter & (GBEMU_AUDIO_DECIMATION_RATE - 1)))
       {
 

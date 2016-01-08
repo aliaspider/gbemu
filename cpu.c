@@ -218,8 +218,14 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
       GB.APU.square1.length_counter.counter = val & 0x3F;
       GB.APU.square1.length_counter.ch_enabled = true;
       return;      
+   case 0xFF12: //NR12
+      GB.MEMORY[0xFF12] = val;
+      return;
+   case 0xFF13: //NR13
+      GB.MEMORY[0xFF13] = val;
+      return;
    case 0xFF14: //NR14
-      GB.MEMORY[0xFF11] = val;
+      GB.MEMORY[0xFF14] = val;
       if (val & 0x80)
       {
          GB.APU.square1.envelope.counter = GB.SND_regs.channels.square1.envelope_period;
