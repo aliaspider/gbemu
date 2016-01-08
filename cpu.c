@@ -15,7 +15,7 @@
 uint8_t gbemu_read_u8(uint16_t addr)
 {
 
-   if ((GB.MBC.type == CART_TYPE_MBC1) )
+   if ((GB.MBC.type == CART_TYPE_MBC1)||(GB.MBC.type == CART_TYPE_MBC2))
    {
       if ((addr >= 0x4000) && (addr < 0x8000))
          return GB.MBC.active_ROM_bank[addr & 0x3FFF];
@@ -185,6 +185,22 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
             GB.MBC.active_SRAM_bank = GB.MBC.SRAM_banks[0];
       }
 
+      return;
+   }
+   else if ((GB.MBC.type == CART_TYPE_MBC2) && (addr < 0x4000))
+   {
+      if (addr < 0x2000)
+      {
+         if(!(addr & 0x10))
+            GB.MBC.SRAM_enable = ((val & 0xF) == 0xA);
+      }
+      else if((addr & 0x10))
+      {
+         val &= 0xF;
+         if(!val)
+            val = 0x1;
+         GB.MBC.active_ROM_bank = GB.MBC.ROM_banks[0][val];
+      }
       return;
    }
 
