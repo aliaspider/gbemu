@@ -142,7 +142,7 @@ void gbemu_apu_run(int target_cycles)
          }
       }
 
-      if (!(GB.APU.counter & 0x1F))
+      if (!(GB.APU.counter & 0x0F))
       {
          /*  duty                  --  Pos --
           *  ----   0b000 0b001 0b010 0b011 0b100 0b101 0b110 0b111
@@ -178,12 +178,12 @@ void gbemu_apu_run(int target_cycles)
       {
          uint16_t l = 0;
          uint16_t r = 0;
-         //if(GB.APU.square1.length_counter.ch_enabled)
-         //   l += (GB.APU.square1.value * GB.APU.square1.envelope.volume);
-         l += GB.APU.square1.value;
-         //if(GB.APU.square2.length_counter.ch_enabled)
-         //  l += (GB.APU.square2.value * GB.APU.square2.envelope.volume);
-         l += GB.APU.square1.value;
+         if(GB.APU.square1.length_counter.ch_enabled)
+            l += (GB.APU.square1.value * GB.APU.square1.envelope.volume);
+//         l += GB.APU.square1.value;
+         if(GB.APU.square2.length_counter.ch_enabled)
+           l += (GB.APU.square2.value * GB.APU.square2.envelope.volume);
+//         l += GB.APU.square1.value;
 
          l <<= 12;
          r = l;
