@@ -119,7 +119,12 @@
 #define CPU_POP_BC() CPU_POP_rr(REG_C, REG_B)
 #define CPU_POP_DE() CPU_POP_rr(REG_E, REG_D)
 #define CPU_POP_HL() CPU_POP_rr(REG_L, REG_H)
-#define CPU_POP_AF() CPU_POP_rr(REG_F, REG_A)
+//#define CPU_POP_AF() CPU_POP_rr(REG_F, REG_A)
+#define CPU_POP_AF() \
+   REG_F = GB_READ_U8(REG_SP++) & 0xF0;\
+   REG_A = GB_READ_U8(REG_SP++);\
+   CPU_cycles_add(3);\
+   CPU_exec_next();
 
 #define CPU_PUSH_rr(reg0, reg1) \
    GB_WRITE_U8(--REG_SP, reg0);\
