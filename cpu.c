@@ -275,6 +275,9 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
       GB.APU.noise.length_counter.counter = val & 0x3F;
       GB.APU.noise.length_counter.ch_enabled = true;
       return;
+   case 0xFF22: //NR43
+      GB.MEMORY[0xFF22] = val;
+      return;
    case 0xFF23: //NR44
       GB.MEMORY[0xFF23] = val;
       if (val & 0x80)
@@ -286,6 +289,20 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
          GB.APU.noise.length_counter.ch_enabled = true;
          GB.APU.noise.length_counter.counter = 0;
 
+         GB.APU.noise.PRNG = 0x7FFF;
+         GB.APU.noise.shift_counter = 1 << GB.SND_regs.channels.noise.clock_shift;
+         GB.APU.noise.down_counter = GB.SND_regs.channels.noise.divisor_code;
+
+         GB.APU.noise.counter--;
+         unsigned s = (GB.SND_regs.channels.noise.clock_shift) + 3;
+         unsigned r = GB.SND_regs.channels.noise.divisor_code;
+
+         if (!r) {
+            r = 1;
+            --s;
+         }
+
+         GB.APU.noise.counter = (r << s);
       }
       return;
    default:

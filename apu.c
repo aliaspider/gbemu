@@ -110,6 +110,7 @@ void gbemu_apu_run(int target_cycles)
                }
             }
             if ((GB.APU.noise.envelope.counter) &&
+//                1)
                   !(GB.APU.noise.envelope.counter & 0x8))
             {
                GB.APU.noise.envelope.counter--;
@@ -172,6 +173,43 @@ void gbemu_apu_run(int target_cycles)
          }
 
       }
+
+      if (!(GB.APU.counter & 0xF))
+      {
+         //            GB.APU.noise.down_counter--;
+         //         if(!GB.APU.noise.down_counter)
+         if (GB.APU.noise.down_counter)
+            GB.APU.noise.down_counter--;
+         //         else
+         {
+            if (!GB.SND_regs.channels.noise.divisor_code)
+               GB.APU.noise.down_counter = 1;
+            else
+               GB.APU.noise.down_counter = GB.SND_regs.channels.noise.divisor_code << 1;
+
+            //            GB.APU.noise.down_counter = GB.SND_regs.channels.noise.divisor_code;
+            GB.APU.noise.shift_counter--;
+
+            if (!GB.APU.noise.shift_counter)
+            {
+               GB.APU.noise.shift_counter = 1 << (GB.SND_regs.channels.noise.clock_shift + 1);
+
+               int XOR_val = GB.APU.noise.PRNG ^ (GB.APU.noise.PRNG >> 1);
+               if (GB.SND_regs.channels.noise.LFSR_width_mode)
+               {
+                  XOR_val >>= 0x5;
+                  GB.APU.noise.value = ((GB.APU.noise.PRNG >> 7) & 0x1) ^ 0x1;
+               }
+               else
+               {
+                  XOR_val >>= 0xD;
+                  GB.APU.noise.value = ((GB.APU.noise.PRNG >> 15) & 0x1) ^ 0x1;
+               }
+               GB.APU.noise.PRNG = (GB.APU.noise.PRNG << 1) | (XOR_val & 0x1);
+            }
+
+         }
+      }
       static int l = 0;
       static int r = 0;
       if(GB.APU.square1.length_counter.ch_enabled)
@@ -181,7 +219,12 @@ void gbemu_apu_run(int target_cycles)
          l += (GB.APU.square2.value * GB.APU.square2.envelope.volume);
 //      l += GB.APU.square2.value;
          if(GB.APU.wave.length_counter.ch_enabled)
-           l += (GB.APU.wave.value >> 1);
+           l += (GB.APU.wave.value  );
+
+      if (GB.APU.noise.length_counter.ch_enabled)
+         l += (GB.APU.noise.value * GB.APU.noise.envelope.volume);
+      //         l += GB.APU.noise.value << 3;
+
       if (!(GB.APU.counter & (GBEMU_AUDIO_DECIMATION_RATE - 1)))
       {
 

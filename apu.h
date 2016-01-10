@@ -152,7 +152,7 @@ typedef struct __attribute__((packed))
 }
 gbemu_sound_regs_t;
 
-#define GBEMU_TIMER_FRAME_SEQUENCER_PERIOD   (1 << 13)
+#define GBEMU_TIMER_FRAME_SEQUENCER_PERIOD   (1 << 11)
 #define GBEMU_TIMER_FRAME_SEQUENCER_MASK     (GBEMU_TIMER_FRAME_SEQUENCER_PERIOD - 1)
 
 #define GBEMU_TIMER_LENGTH_COUNTER_TICK_VAL   (0b000)
@@ -291,9 +291,11 @@ typedef struct
          bool enabled;
          int frequency;
       } sweep;
-      int counter;
-      int pos;
+      int down_counter;
+      int shift_counter;
+      int PRNG;
       int value;
+      int counter;
    } noise;
 
 
