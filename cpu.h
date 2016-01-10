@@ -14,7 +14,7 @@ typedef struct
          {
             struct __attribute__((packed))
             {
-               unsigned FL :4;
+               unsigned :4;
                unsigned FC :1;
                unsigned FH :1;
                unsigned FN :1;
