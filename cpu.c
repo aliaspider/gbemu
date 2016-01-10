@@ -308,7 +308,13 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
    default:
       if (addr < 0x8000)
          return;
-      GB.MEMORY[addr] = val;
+      else if ((addr >= 0xC000) && (addr < 0xDE00))
+      {
+         GB.MEMORY[addr] = val;
+         GB.MEMORY[addr + 0x2000] = val;
+      }
+      else
+         GB.MEMORY[addr] = val;
    }
 }
 
@@ -434,9 +440,9 @@ next_instruction:
 //#define DISASM
    //#define SKIP_COUNT 0x7490
    //#define SKIP_COUNT 0xEEE9
-   //#define SKIP_COUNT 0x0001803F
+//   #define SKIP_COUNT 0x000371A0
 //#define SKIP_COUNT 0xFFFFFFFF
-#define SKIP_COUNT 0x00000000
+//#define SKIP_COUNT 0x00000000
 
 
 
@@ -447,8 +453,8 @@ next_instruction:
 next_instruction_nocheck:
 #ifdef DISASM
    //   if(CPU.PC == 0x658F)
-   if (CPU.PC == 0x0339)
-      force_disasm = true;
+//   if (CPU.PC == 0xC000)
+//      force_disasm = true;
 
    if (total_exec > SKIP_COUNT)
    {
@@ -464,8 +470,14 @@ next_instruction_nocheck:
 #endif
 
    total_exec++;
-   //   if(GB.MEMORY[0xFF44] == 0x94)
-   //      fflush(stdout);
+//   if(GB.MEMORY[0xFF44] == 0x94)
+//      fflush(stdout);
+//   if ((CPU.AF == 0x810b))
+//       fflush(stdout);
+//   if ((CPU.PC == 0xDEF8))
+//       fflush(stdout);
+//   if ((CPU.PC == 0xC4C2) && (CPU.A == 0xF1))
+//       fflush(stdout);
 
    switch (GB.MEMORY[CPU.PC++])
    {
