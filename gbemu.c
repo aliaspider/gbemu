@@ -159,7 +159,7 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
    GB.CPU.DE = 0x00D8;
    GB.CPU.HL = 0x014D;
    GB.CPU.SP = 0xFFFE;
-   GB.CPU.PC = 0x150;
+   GB.CPU.PC = 0x100;
    GB.CPU.cycles = 0;
    GB.CPU.IME = 1;
 
