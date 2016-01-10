@@ -441,7 +441,7 @@ next_instruction:
    //#define SKIP_COUNT 0x7490
    //#define SKIP_COUNT 0xEEE9
 //   #define SKIP_COUNT 0x000371A0
-//#define SKIP_COUNT 0xFFFFFFFF
+#define SKIP_COUNT 0xFFFFFFFF
 //#define SKIP_COUNT 0x00000000
 
 
@@ -453,7 +453,7 @@ next_instruction:
 next_instruction_nocheck:
 #ifdef DISASM
    //   if(CPU.PC == 0x658F)
-//   if (CPU.PC == 0xC000)
+//   if (CPU.PC >= 0x4000)
 //      force_disasm = true;
 
    if (total_exec > SKIP_COUNT)
@@ -479,7 +479,7 @@ next_instruction_nocheck:
 //   if ((CPU.PC == 0xC4C2) && (CPU.A == 0xF1))
 //       fflush(stdout);
 
-   switch (GB.MEMORY[CPU.PC++])
+   switch (GB_READ_PC())
    {
    // NOP
    //   case 0x7F:
@@ -914,7 +914,7 @@ next_instruction_nocheck:
       CPU_LD_addr8_r(REG_A);
    case 0xF0:
       CPU_LD_r_addr8(REG_A);
-   case 0xE8:
+   case 0xE8:      
       CPU_ADD_SP_off8();
    case 0xF8:
       CPU_LD_HL_SP_off8();
@@ -981,7 +981,9 @@ next_instruction_nocheck:
 
    case 0xC6:
       CPU_ADD_r_imm8(REG_A);
-   case 0xCE:
+   case 0xCE: // 0x0210 0xC674 0xDEF8
+//      if(REG_PC == 0xDEF9)
+//         fflush(stdout);
       CPU_ADC_r_imm8(REG_A);
    case 0xD6:
       CPU_SUB_r_imm8(REG_A);
@@ -1044,7 +1046,7 @@ next_instruction_nocheck:
 
    case 0xCB:
    {
-      switch (GB.MEMORY[CPU.PC++])
+      switch (GB_READ_PC())
       {
       case 0x00:
          CPU_RLC(REG_B);
@@ -1612,7 +1614,7 @@ invalid_opcode:
       {
          extern retro_environment_t environ_cb;
          retro_sleep(10);
-         printf("invalid opcode : 0x%02X\n", GB.MEMORY[CPU.PC - 1]);
+         printf("invalid opcode : 0x%02X\n",GB_READ_U8(CPU.PC - 1));
          fflush(stdout);
          //      DEBUG_BREAK();
 
@@ -1633,7 +1635,7 @@ unknown_opcode:
       {
          extern retro_environment_t environ_cb;
          retro_sleep(10);
-         printf("unknown opcode : 0x%02X\n", GB.MEMORY[CPU.PC - 1]);
+         printf("unknown opcode : 0x%02X\n", GB_READ_U8(CPU.PC - 1));
          fflush(stdout);
          //      DEBUG_BREAK();
 

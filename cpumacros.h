@@ -14,6 +14,8 @@
 #define GB_WRITE_U8(addr, val)   gbemu_write_u8(addr, val)
 #endif
 
+#define GB_READ_PC()         GB_READ_U8(REG_PC++)
+
 #define REG_A CPU.A
 #define REG_F CPU.F
 #define REG_B CPU.B
@@ -144,11 +146,11 @@
    do {\
       int8_t offset = GB_READ_S8(REG_PC++);\
       unsigned val = REG_SP + offset;\
-      CPU_FLAG_H = (REG_SP ^ offset ^ val) >> 12;\
+      CPU_FLAG_H = (REG_SP ^ offset ^ val) >> 4;\
+      CPU_FLAG_C = (REG_SP ^ offset ^ val) >> 16;\
       REG_SP = (uint16_t)val;\
       CPU_FLAG_Z = 0;\
       CPU_FLAG_N = 0;\
-      CPU_FLAG_C = val >> 16;\
       CPU_cycles_add(4);\
       CPU_exec_next();\
    }while(0)
@@ -158,11 +160,11 @@
    do {\
       int8_t offset = GB_READ_S8(REG_PC++);\
       unsigned val = REG_SP + offset;\
-      CPU_FLAG_H = (REG_SP ^ offset ^ val) >> 12;\
+      CPU_FLAG_H = (REG_SP ^ offset ^ val) >> 4;\
+      CPU_FLAG_C = (REG_SP ^ offset ^ val) >> 16;\
       REG_HL = (uint16_t)val;\
       CPU_FLAG_Z = 0;\
-      CPU_FLAG_N = 0;\      
-      CPU_FLAG_C = val >> 16;\
+      CPU_FLAG_N = 0;\
       CPU_cycles_add(3);\
       CPU_exec_next();\
    }while(0)

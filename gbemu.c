@@ -215,6 +215,8 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
 
    if (GB.cart_info->type == CART_TYPE_MBC5)
       GB.MBC.type = CART_TYPE_MBC1;
+   else
+      GB.MBC.type = GB.cart_info->type;
 
    return true;
 }
