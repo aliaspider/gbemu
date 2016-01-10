@@ -9,7 +9,7 @@ gbemu_state_t GB;
       if(((uint8_t*)&reg != &GB.MEMORY[addr]) || (sizeof(reg) != size)) \
       {\
          printf("reg : %s\n expected: addr = 0x%04X size = 0x%X\n got:      addr = 0x%04X size = 0x%X\n ", #reg, \
-             addr, size, (uint8_t*)&reg - GB.MEMORY, sizeof(reg));\
+             addr, size, (unsigned)((uint8_t*)&reg - GB.MEMORY), (unsigned)sizeof(reg));\
          exit(1);\
       }\
    }while(0)
