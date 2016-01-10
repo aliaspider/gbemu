@@ -138,20 +138,6 @@
 #define CPU_PUSH_AF() CPU_PUSH_rr(REG_A, REG_F)
 
 
-/* todo: correct C/H flag when off8 < 0 */
-#define CPU_LD_HL_SP_off8() \
-   do {\
-      int8_t offset = GB_READ_S8(REG_PC++);\
-      unsigned val = REG_SP + offset;\
-      REG_HL = (uint16_t)val;\
-      CPU_FLAG_Z = 0;\
-      CPU_FLAG_N = 0;\
-      CPU_FLAG_H = (REG_SP ^ offset ^ val) >> 12;\
-      CPU_FLAG_C = val >> 16;\
-      CPU_cycles_add(3);\
-      CPU_exec_next();\
-   }while(0)
-
 
 /* todo: correct C/H flag when off8 < 0 */
 #define CPU_ADD_SP_off8() \
@@ -164,6 +150,20 @@
       CPU_FLAG_N = 0;\
       CPU_FLAG_C = val >> 16;\
       CPU_cycles_add(4);\
+      CPU_exec_next();\
+   }while(0)
+
+/* todo: correct C/H flag when off8 < 0 */
+#define CPU_LD_HL_SP_off8() \
+   do {\
+      int8_t offset = GB_READ_S8(REG_PC++);\
+      unsigned val = REG_SP + offset;\
+      CPU_FLAG_H = (REG_SP ^ offset ^ val) >> 12;\
+      REG_HL = (uint16_t)val;\
+      CPU_FLAG_Z = 0;\
+      CPU_FLAG_N = 0;\      
+      CPU_FLAG_C = val >> 16;\
+      CPU_cycles_add(3);\
       CPU_exec_next();\
    }while(0)
 
@@ -468,48 +468,80 @@
 
 #define CPU_DAA() \
    do{\
-      unsigned low = REG_A & 0xF;\
-      unsigned high = REG_A >> 4;\
-      if(CPU_FLAG_N)\
+      if (CPU_FLAG_N)\
       {\
-         if(CPU_FLAG_H)\
+         if (CPU_FLAG_C)\
          {\
-            low -= 0x6;\
-            high++;\
+            if (CPU_FLAG_H)\
+               REG_A += 0x9A;\
+            else\
+               REG_A += 0xA0;\
          }\
-         if(CPU_FLAG_C)\
+         else\
          {\
-            high -= 0x6;\
+            if (CPU_FLAG_H)\
+               REG_A += 0xFA;\
+            else\
+               REG_A += 0x00;\
          }\
       }\
       else\
       {\
-         if(CPU_FLAG_H)\
+         if (CPU_FLAG_C)\
          {\
-            low += 0x6;\
-            high--;\
+            if (CPU_FLAG_H)\
+               REG_A += 0x66;\
+            else\
+            {\
+               if ((REG_A & 0xF) < 0xA)\
+                  REG_A += 0x60;\
+               else\
+                  REG_A += 0x66;\
+            }\
          }\
-         if(low > 0x9)\
+         else\
          {\
-            low -= 0x9;\
-            high++;\
-         }\
-         if(CPU_FLAG_C)\
-         {\
-            high += 0x6;\
-         }\
-         if(high > 0x9)\
-         {\
-            high -= 0x9;\
-            CPU_FLAG_C = 1;\
+            if (CPU_FLAG_H)\
+            {\
+               if (REG_A < 0x9A)\
+                  REG_A += 0x06;\
+               else\
+               {\
+                  REG_A += 0x66;\
+                  CPU_FLAG_C = 1;\
+               }\
+            }\
+            else\
+            {\
+               if ((REG_A & 0xF)< 0xA)\
+               {\
+                  if (REG_A < 0x9A)\
+                     REG_A += 0x00;\
+                  else\
+                  {\
+                     REG_A += 0x60;\
+                     CPU_FLAG_C = 1;\
+                  }\
+               }\
+               else\
+               {\
+                  if (REG_A < 0x9A)\
+                     REG_A += 0x06;\
+                  else\
+                  {\
+                     REG_A += 0x66;\
+                     CPU_FLAG_C = 1;\
+                  }\
+               }\
+            }\
          }\
       }\
-      REG_A = low | high << 4;\
       CPU_FLAG_Z = !REG_A;\
       CPU_FLAG_H = 0;\
       CPU_cycles_inc();\
       CPU_exec_next();\
-   }while(0)
+   }\
+   while (0)
 
 
 #define CPU_CPL() \
