@@ -198,22 +198,34 @@ void gbemu_ppu_draw(int cycles)
 
 
       uint8_t* bg_tile_map = GB.LCDC.BG_tilemap_select  ? &GB.VRAM[0x1C00] : &GB.VRAM[0x1800];
-      uint8_t* bg_tile_data = GB.LCDC.BG_WIN_data_select ? &GB.VRAM[0x0000] : &GB.VRAM[0x1000];
+      uint8_t* win_tile_map = GB.LCDC.WIN_tilemap_select ? &GB.VRAM[0x1C00] : &GB.VRAM[0x1800];
+      uint8_t* tile_data_vram = GB.LCDC.BG_WIN_data_select ? &GB.VRAM[0x0000] : &GB.VRAM[0x1000];
 
 
-      uint8_t map_coord_y = scanline + GB.SCY;
-      uint8_t map_coord_x = current + GB.SCX;
+      uint8_t map_coord_x, map_coord_y;
+      int16_t tile_id;
 
-      int16_t tile_id = bg_tile_map[(map_coord_x / 8) + (map_coord_y / 8) * 32];
+      if(GB.LCDC.WIN_enable && (GB.WY <= scanline) && ((GB.WX - 7) <= current))
+      {
+         map_coord_y = scanline - GB.WY;
+         map_coord_x = current - (GB.WX - 7);
+
+         tile_id = win_tile_map[(map_coord_x / 8) + (map_coord_y / 8) * 32];
+      }
+      else
+      {
+         map_coord_y = scanline + GB.SCY;
+         map_coord_x = current + GB.SCX;
+
+         tile_id = bg_tile_map[(map_coord_x / 8) + (map_coord_y / 8) * 32];
+      }
 
       tile_id = GB.LCDC.BG_WIN_data_select ? tile_id : (int8_t)tile_id;
-      //      tile_id &= 0xFF;
-
       map_coord_x &= 0x7;
       map_coord_y &= 0x7;
 
 
-      uint8_t* tile_data = &bg_tile_data[(int)tile_id * 16];
+      uint8_t* tile_data = &tile_data_vram[(int)tile_id * 16];
 
       tile_data += (map_coord_y << 1);
 
@@ -225,46 +237,47 @@ void gbemu_ppu_draw(int cycles)
 
       gbemu_object_attr_t* obj = (gbemu_object_attr_t*)GB.OAM;
 
-      do
+      if(GB.LCDC.OBJ_enable)
       {
-         if (obj->prio && id > 0)
-            continue;
-
-         int offsetX = current + 8 - (int)obj->posX;
-         int offsetY = scanline + 16 - (int)obj->posY;
-
-         if ((offsetX < 0) || (offsetX > 7) || (offsetY < 0) || (offsetY > (GB.LCDC.OBJ_size? 15 : 7)))
-            continue;
-
-         uint8_t* spr_tile_data = &GB.VRAM[GB.LCDC.OBJ_size? (obj->ID >> 1) << 5 : obj->ID << 4];
-         spr_tile_data += (offsetY << 1);
-
-         if(obj->flipX)
-            offsetX = 7 - offsetX;
-         if(obj->flipY)
-            offsetY = (GB.LCDC.OBJ_size? 15 : 7) - offsetY;
-
-         uint8_t spr_bp0 = *spr_tile_data << offsetX;
-         uint8_t spr_bp1 = *(spr_tile_data + 1) << offsetX;
-         int spr_id = ((spr_bp0 >> 7) & 0x1) | ((spr_bp1 >> 6) & 0x2);
-
-         if (spr_id)
+         do
          {
-            if (obj->palette)
-               spr_id = (GB.OBP1 >> (spr_id << 1)) & 0x3;
-            else
-               spr_id = (GB.OBP0 >> (spr_id << 1)) & 0x3;
+            if (obj->prio && id > 0)
+               continue;
 
-            gbemu_frame[current + scanline * GBEMU_DRAWBUFFER_W] = gbemu_palette[spr_id];
-            break;
+            int offsetX = current + 8 - (int)obj->posX;
+            int offsetY = scanline + 16 - (int)obj->posY;
+
+            if ((offsetX < 0) || (offsetX > 7) || (offsetY < 0) || (offsetY > (GB.LCDC.OBJ_size? 15 : 7)))
+               continue;
+
+            uint8_t* spr_tile_data = &GB.VRAM[GB.LCDC.OBJ_size? (obj->ID >> 1) << 5 : obj->ID << 4];
+            spr_tile_data += (offsetY << 1);
+
+            if(obj->flipX)
+               offsetX = 7 - offsetX;
+            if(obj->flipY)
+               offsetY = (GB.LCDC.OBJ_size? 15 : 7) - offsetY;
+
+            uint8_t spr_bp0 = *spr_tile_data << offsetX;
+            uint8_t spr_bp1 = *(spr_tile_data + 1) << offsetX;
+            int spr_id = ((spr_bp0 >> 7) & 0x1) | ((spr_bp1 >> 6) & 0x2);
+
+            if (spr_id)
+            {
+               if (obj->palette)
+                  spr_id = (GB.OBP1 >> (spr_id << 1)) & 0x3;
+               else
+                  spr_id = (GB.OBP0 >> (spr_id << 1)) & 0x3;
+
+               gbemu_frame[current + scanline * GBEMU_DRAWBUFFER_W] = gbemu_palette[spr_id];
+               break;
+            }
+
          }
-
+         while (++obj < (gbemu_object_attr_t*)&GB.OAM[0xA0]);
       }
-      while (++obj < (gbemu_object_attr_t*)&GB.OAM[0xA0]);
 
    }
-
-
 
 finish:
    last_cycles = cycles;

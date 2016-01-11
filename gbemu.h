@@ -110,10 +110,12 @@ typedef struct
                uint8_t SCX;
                uint8_t LY;
                uint8_t LYC;
-               unsigned : 8;
+               uint8_t DMA;
                uint8_t BGP;
                uint8_t OBP0;
                uint8_t OBP1;
+               uint8_t WY;
+               uint8_t WX;
 
             };
          };

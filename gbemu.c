@@ -69,9 +69,12 @@ void gbemu_sanity_checks(void)
    gb_check_register8(GB.SCX, 0xFF43);
    gb_check_register8(GB.LY, 0xFF44);
    gb_check_register8(GB.LYC, 0xFF45);
+   gb_check_register8(GB.DMA, 0xFF46);
    gb_check_register8(GB.BGP, 0xFF47);
    gb_check_register8(GB.OBP0, 0xFF48);
    gb_check_register8(GB.OBP1, 0xFF49);
+   gb_check_register8(GB.WY, 0xFF4A);
+   gb_check_register8(GB.WX, 0xFF4B);
    gb_check_register8(GB.IE, 0xFFFF);
 
 }
