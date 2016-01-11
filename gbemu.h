@@ -83,7 +83,19 @@ typedef struct
                }
                IF;
                gbemu_sound_regs_t SND_regs;
-               uint8_t LCDC;
+
+               struct __attribute__((packed))
+               {
+                  unsigned BG_display : 1;
+                  unsigned OBJ_enable : 1;
+                  unsigned OBJ_size : 1;
+                  unsigned BG_tilemap_select : 1;
+                  unsigned BG_WIN_data_select : 1;
+                  unsigned WIN_enable : 1;
+                  unsigned WIN_tilemap_select : 1;
+                  unsigned LCD_enable : 1;
+               }
+               LCDC;
                struct __attribute__((packed))
                {
                   unsigned mode_flag      : 2;
@@ -98,7 +110,7 @@ typedef struct
                uint8_t SCX;
                uint8_t LY;
                uint8_t LYC;
-               unsigned :8;
+               unsigned : 8;
                uint8_t BGP;
                uint8_t OBP0;
                uint8_t OBP1;
@@ -117,7 +129,7 @@ typedef struct
          } IE;
       };
       uint8_t MEMORY [0x10000];
-      int8_t  sMEMORY[0x10000];      
+      int8_t  sMEMORY[0x10000];
    };
    uint8_t BIOS[0x100];
    const cartridge_info_t* cart_info;
@@ -144,7 +156,7 @@ typedef struct
 
       catridge_type_enum type; //duplicate
 
-   }MBC;
+   } MBC;
 
 } gbemu_state_t;
 

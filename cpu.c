@@ -357,7 +357,7 @@ next_instruction:
 
    GB.LCD_STAT.LCY_eq_LY_flag = (GB_LY == GB_LYC);
 
-   if (GB.LCDC & 0x80)
+   if (GB.LCDC.LCD_enable)
    {
       if (GB_LY > 143)
          GB.IF.Vblank = 1;
@@ -400,7 +400,7 @@ next_instruction:
 
    if (CPU.IME)
    {
-      if ((GB.IF.Vblank & GB.IE.Vblank) && (GB.LCDC & 0x80))
+      if ((GB.IF.Vblank & GB.IE.Vblank) && GB.LCDC.LCD_enable)
       {
          CPU.IME = 0;
          GB.IF.Vblank = 0;

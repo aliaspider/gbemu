@@ -177,6 +177,9 @@ void retro_run(void)
    gbemu_run();
    RETRO_PERFORMANCE_STOP(gbemu_main_func);
 
+//   if(!GB.LCDC.LCD_enable)
+//      memset(gbemu_frame, 0xFF, sizeof(gbemu_frame));
+
 #ifdef VIEW_TILEMAP
    gbemu_draw_sprite_map();
    gbemu_draw_bgmap();
