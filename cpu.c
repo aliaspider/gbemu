@@ -1029,7 +1029,7 @@ next_instruction_nocheck:
       uint16_t addr = GB_READ_U8(CPU.PC++);
       addr |= GB_READ_U8(CPU.PC++) << 8;
       CPU.A = GB_READ_U8(addr);
-      CPU.cycles += 3;
+      CPU.cycles += 4;
       CPU_exec_next();
    }
 

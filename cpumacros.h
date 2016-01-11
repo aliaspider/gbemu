@@ -308,7 +308,7 @@
    CPU_FLAG_N = 0;\
    CPU_FLAG_H = 1;\
    CPU_FLAG_C = 0;\
-   CPU_cycles_inc();\
+   CPU_cycles_add(2);\
    CPU_exec_next();
 
 #define CPU_AND_A_imm8() CPU_AND_A_raddr(REG_PC++)
@@ -328,7 +328,7 @@
    CPU_FLAG_N = 0;\
    CPU_FLAG_H = 0;\
    CPU_FLAG_C = 0;\
-   CPU_cycles_inc();\
+   CPU_cycles_add(2);\
    CPU_exec_next();
 
 #define CPU_XOR_A_imm8() CPU_XOR_A_raddr(REG_PC++)
@@ -348,7 +348,7 @@
    CPU_FLAG_N = 0;\
    CPU_FLAG_H = 0;\
    CPU_FLAG_C = 0;\
-   CPU_cycles_inc();\
+   CPU_cycles_add(2);\
    CPU_exec_next();
 
 #define CPU_OR_A_imm8() CPU_OR_A_raddr(REG_PC++)
@@ -653,9 +653,9 @@
 
 #define CPU_RR_HL() \
    do {\
-      unsigned val = GB_READ_U8(REG_HL);\
-      CPU_FLAG_C = val;\
-      val = (val >> 1) | (CPU_FLAG_C << 7);\
+      unsigned hl_val = GB_READ_U8(REG_HL);\
+      unsigned val = (hl_val >> 1) | (CPU_FLAG_C << 7);\
+      CPU_FLAG_C = hl_val;\
       GB_WRITE_U8(REG_HL, val);\
       CPU_FLAG_Z = !val;\
       CPU_FLAG_N = 0;\
@@ -677,7 +677,8 @@
    do {\
       uint8_t val = GB_READ_U8(REG_HL);\
       CPU_FLAG_C = val >> 7;\
-      GB_WRITE_U8(REG_HL, val << 1);\
+      val <<= 1;\
+      GB_WRITE_U8(REG_HL, val);\
       CPU_FLAG_Z = !val;\
       CPU_FLAG_N = 0;\
       CPU_FLAG_H = 0;\
@@ -697,12 +698,12 @@
 #define CPU_SRA_HL() \
    do {\
       uint8_t val = GB_READ_U8(REG_HL);\
+      CPU_FLAG_C = val;\
       val = (val >> 1) | (val & 0x80);\
       GB_WRITE_U8(REG_HL, val);\
       CPU_FLAG_Z = !val;\
       CPU_FLAG_N = 0;\
       CPU_FLAG_H = 0;\
-      CPU_FLAG_C = 0;\
       CPU_cycles_add(4);\
       CPU_exec_next();\
    }while(0)
@@ -763,7 +764,7 @@
    CPU_FLAG_Z = (GB_READ_U8(REG_HL) >> bit) ^ 1;\
    CPU_FLAG_N = 0;\
    CPU_FLAG_H = 1;\
-   CPU_cycles_add(4);\
+   CPU_cycles_add(3);\
    CPU_exec_next();
 
 #define CPU_RES(bit, reg) \
