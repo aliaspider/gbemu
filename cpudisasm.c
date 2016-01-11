@@ -2,6 +2,7 @@
 #include "gbemu.h"
 #include "cpu.h"
 #include "cpudisasm.h"
+#include "cpumacros.h"
 
 int gbemu_disasm_current(gbemu_cpu_t* CPU, bool dump_state)
 {
@@ -62,7 +63,7 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU, bool dump_state)
 
    } op;
 
-   op.val         = GB.MEMORY[CPU->PC];
+   op.val         = GB_READ_U8(CPU->PC);
    op.label       = NULL;
    op.operand0    = NULL;
    op.operand1    = NULL;
@@ -75,8 +76,8 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU, bool dump_state)
    op.size        = 1;
 
 
-   uint8_t v0 = GB.MEMORY[(CPU->PC + 1) & 0xFFFF];
-   uint8_t v1 = GB.MEMORY[(CPU->PC + 2) & 0xFFFF];
+   uint8_t v0 = GB_READ_U8((CPU->PC + 1) & 0xFFFF);
+   uint8_t v1 = GB_READ_U8((CPU->PC + 2) & 0xFFFF);
 
    snprintf(immediate8, sizeof(immediate8), "%02X", v0);
    snprintf(signed_immediate8, sizeof(signed_immediate8), "%c%02X", (v0 & 0x80)? '-': '+', (v0 & 0x80)? 0x100 - v0: v0);
@@ -164,7 +165,7 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU, bool dump_state)
       op.cycles += 3;
       break;
    case 0xCB:
-      op.val = GB.MEMORY[(CPU->PC + 1) & 0xFFFF];
+      op.val = GB_READ_U8((CPU->PC + 1) & 0xFFFF);
       op.operand1 = reg_names[op.r1];
       op.size++;
       op.cycles++;
@@ -632,11 +633,11 @@ int gbemu_disasm_current(gbemu_cpu_t* CPU, bool dump_state)
    printf("(%04X) ", CPU->PC);
 
    if (op.size == 1)
-      printf("%02X       :", GB.MEMORY[CPU->PC]);
+      printf("%02X       :", GB_READ_U8(CPU->PC));
    else if (op.size == 2)
-      printf("%02X %02X    :", GB.MEMORY[CPU->PC], GB.MEMORY[(CPU->PC + 1) & 0xFFFF]);
+      printf("%02X %02X    :", GB_READ_U8(CPU->PC), GB_READ_U8((CPU->PC + 1) & 0xFFFF));
    else
-      printf("%02X %02X %02X :", GB.MEMORY[CPU->PC], GB.MEMORY[(CPU->PC + 1) & 0xFFFF], GB.MEMORY[(CPU->PC + 2) & 0xFFFF]);
+      printf("%02X %02X %02X :", GB_READ_U8(CPU->PC), GB_READ_U8((CPU->PC + 1) & 0xFFFF), GB_READ_U8((CPU->PC + 2) & 0xFFFF));
 
    if (op.label)
    {

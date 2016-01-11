@@ -65,5 +65,5 @@ typedef struct
 }gbemu_cpu_t;
 
 void gbemu_cpu_run(int cycles);
-
+uint8_t gbemu_read_u8(uint16_t addr);
 #endif // CPU_H
