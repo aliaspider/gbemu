@@ -6,7 +6,8 @@
 uint16_t gbemu_frame[GBEMU_DRAWBUFFER_W* GBEMU_DRAWBUFFER_H];
 uint16_t* const gbemu_tilemap_frame = &gbemu_frame[256];
 uint16_t* const gbemu_bgmap_frame = &gbemu_frame[256 * GBEMU_DRAWBUFFER_W];
-uint16_t* const gbemu_spritemap_frame = &gbemu_frame[256 * GBEMU_DRAWBUFFER_W + 256];
+uint16_t* const gbemu_winmap_frame = &gbemu_frame[256 * GBEMU_DRAWBUFFER_W + 256];
+uint16_t* const gbemu_spritemap_frame = &gbemu_frame[144 * GBEMU_DRAWBUFFER_W + 256];
 
 #if 0
 uint16_t gbemu_palette[] = {0xFFFF, 0x14 | 0x2A << 6 | 0x14 << 11,
@@ -36,7 +37,7 @@ typedef struct __attribute((packed))
 gbemu_object_attr_t;
 
 
-static void gbemu_draw_tile(uint8_t* tile, uint16_t* frame, int stride)
+static void gbemu_draw_tile(uint8_t* tile, uint16_t* frame, int stride, uint8_t palette)
 {
    int i, j;
 
@@ -50,6 +51,7 @@ static void gbemu_draw_tile(uint8_t* tile, uint16_t* frame, int stride)
          int id = ((bp0 >> 7) & 0x1) | ((bp1 >> 6) & 0x2);
          bp0 <<= 1;
          bp1 <<= 1;
+         id = (palette >> (id << 1)) & 0x3;
          *frame = gbemu_palette[id];
          frame++;
       }
@@ -73,7 +75,7 @@ void gbemu_draw_tilemap(void)
 
    while (ptr < &GB.VRAM[0x2000])
    {
-      gbemu_draw_tile(ptr, dst, GBEMU_DRAWBUFFER_W);
+      gbemu_draw_tile(ptr, dst, GBEMU_DRAWBUFFER_W, 0b11100100);
       ptr += 16;
       dst += 8;
       i++;
@@ -109,28 +111,39 @@ void gbemu_draw_bgmap(void)
    if (GB.LCDC.BG_WIN_data_select)
    {
       uint8_t* bg_tile_map = GB.LCDC.BG_tilemap_select ? &GB.VRAM[0x1C00] : &GB.VRAM[0x1800];
-      uint8_t* bg_tile_data = &GB.VRAM[0x0000];
+      uint8_t* win_tile_map = GB.LCDC.WIN_tilemap_select ? &GB.VRAM[0x1C00] : &GB.VRAM[0x1800];
+      uint8_t* tile_data_vram = &GB.VRAM[0x0000];
       int i, j;
 
       for (j = 0; j < 32; j++)
       {
          for (i = 0; i < 32; i++)
-            gbemu_draw_tile(&bg_tile_data[bg_tile_map[i + j * 32] * 16], &gbemu_bgmap_frame[i * 8 + j * 8 * GBEMU_DRAWBUFFER_W],
-                            GBEMU_DRAWBUFFER_W);
+         {
+            gbemu_draw_tile(&tile_data_vram[bg_tile_map[i + j * 32] * 16], &gbemu_bgmap_frame[i * 8 + j * 8 * GBEMU_DRAWBUFFER_W],
+                            GBEMU_DRAWBUFFER_W, GB.BGP);
+            gbemu_draw_tile(&tile_data_vram[win_tile_map[i + j * 32] * 16], &gbemu_winmap_frame[i * 8 + j * 8 * GBEMU_DRAWBUFFER_W],
+                            GBEMU_DRAWBUFFER_W, GB.BGP);
+         }
       }
    }
    else
    {
       int8_t* bg_tile_map = GB.LCDC.BG_tilemap_select ? (int8_t*)&GB.VRAM[0x1C00] : (int8_t*)&GB.VRAM[0x1800];
-      uint8_t* bg_tile_data = &GB.VRAM[0x1000];
+      int8_t* win_tile_map = GB.LCDC.WIN_tilemap_select ? &GB.VRAM[0x1C00] : &GB.VRAM[0x1800];
+      uint8_t* tile_data_vram = &GB.VRAM[0x1000];
       int i, j;
 
       for (j = 0; j < 32; j++)
       {
          for (i = 0; i < 32; i++)
-            gbemu_draw_tile(&bg_tile_data[bg_tile_map[i + j * 32] * 16], &gbemu_bgmap_frame[i * 8 + j * 8 * GBEMU_DRAWBUFFER_W],
-                            GBEMU_DRAWBUFFER_W);
+         {
+            gbemu_draw_tile(&tile_data_vram[bg_tile_map[i + j * 32] * 16], &gbemu_bgmap_frame[i * 8 + j * 8 * GBEMU_DRAWBUFFER_W],
+                            GBEMU_DRAWBUFFER_W, GB.BGP);
+            gbemu_draw_tile(&tile_data_vram[win_tile_map[i + j * 32] * 16], &gbemu_winmap_frame[i * 8 + j * 8 * GBEMU_DRAWBUFFER_W],
+                            GBEMU_DRAWBUFFER_W, GB.BGP);
+         }
       }
+
    }
 
 }
@@ -140,9 +153,22 @@ void gbemu_draw_sprite_map(void)
    int i;
    gbemu_object_attr_t* obj = (gbemu_object_attr_t*)GB.OAM;
 
-   for (i = 0; i < 40; i++, obj++)
-      gbemu_draw_tile(&GB.VRAM[obj->ID << 4], &gbemu_spritemap_frame[(i % 4) * 8 + (i / 4) * 8 * GBEMU_DRAWBUFFER_W],
-                      GBEMU_DRAWBUFFER_W);
+   if(GB.LCDC.OBJ_size)
+   {
+      for (i = 0; i < 40; i++, obj++)
+      {
+         gbemu_draw_tile(&GB.VRAM[(obj->ID & ~0x1) << 4], &gbemu_spritemap_frame[(i & 0x1F) * 8 + (i >> 5) * 32 * GBEMU_DRAWBUFFER_W],
+                         GBEMU_DRAWBUFFER_W, obj->palette? GB.OBP1: GB.OBP0);
+         gbemu_draw_tile(&GB.VRAM[(obj->ID |  0x1) << 4], &gbemu_spritemap_frame[(i & 0x1f) * 8 + ((i >> 5) * 32 + 8) * GBEMU_DRAWBUFFER_W],
+                         GBEMU_DRAWBUFFER_W, obj->palette? GB.OBP1: GB.OBP0);
+      }
+
+   }
+   else
+      for (i = 0; i < 0; i++, obj++)
+         gbemu_draw_tile(&GB.VRAM[obj->ID << 4], &gbemu_spritemap_frame[(i & 0x1F) * 8 + (i >> 5) * 32 * GBEMU_DRAWBUFFER_W],
+                         GBEMU_DRAWBUFFER_W, obj->palette? GB.OBP1: GB.OBP0);
+
 
 }
 
