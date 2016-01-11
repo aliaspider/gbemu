@@ -291,11 +291,29 @@ void retro_unload_game(void)
 
 void* retro_get_memory_data(unsigned id)
 {
+   switch(id & RETRO_MEMORY_MASK)
+   {
+   case RETRO_MEMORY_SAVE_RAM:
+      return GB.MBC.SRAM;
+   case RETRO_MEMORY_SYSTEM_RAM:
+      return GB.HRAM;
+   case RETRO_MEMORY_VIDEO_RAM:
+      return GB.VRAM;
+   }
    return NULL;
 }
 
 size_t retro_get_memory_size(unsigned id)
 {
+   switch(id & RETRO_MEMORY_MASK)
+   {
+   case RETRO_MEMORY_SAVE_RAM:
+      return sizeof(GB.MBC.SRAM);
+   case RETRO_MEMORY_SYSTEM_RAM:
+      return sizeof(GB.HRAM);
+   case RETRO_MEMORY_VIDEO_RAM:
+      return sizeof(GB.VRAM);
+   }
    return 0;
 }
 size_t retro_serialize_size(void)
