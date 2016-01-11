@@ -308,6 +308,11 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
    default:
       if (addr < 0x8000)
          return;
+      else if ((addr >= 0xA000) && (addr < 0xC000))
+      {
+         if (GB.MBC.SRAM_enable)
+            GB.MBC.active_SRAM_bank[addr & 0x3FFF] = val;
+      }
       else if ((addr >= 0xC000) && (addr < 0xDE00))
       {
          GB.MEMORY[addr] = val;
