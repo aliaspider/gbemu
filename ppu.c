@@ -8,7 +8,7 @@ uint16_t* const gbemu_tilemap_frame = &gbemu_frame[256];
 uint16_t* const gbemu_bgmap_frame = &gbemu_frame[256 * GBEMU_DRAWBUFFER_W];
 uint16_t* const gbemu_spritemap_frame = &gbemu_frame[256 * GBEMU_DRAWBUFFER_W + 256];
 
-#if 1
+#if 0
 uint16_t gbemu_palette[] = {0xFFFF,0x14|0x2A<<6|0x14<<11,
                             0xA|0x15<<6|0xA<<11,0x0000,};
 #else
@@ -182,11 +182,8 @@ void gbemu_ppu_draw(int cycles)
       uint8_t* bg_tile_data = !(GB.LCDC & 0x10)? &GB.VRAM[0x1000]: &GB.VRAM[0x0000];
 
 
-      uint8_t SCY = GB.MEMORY[0xFF42];
-      uint8_t SCX = GB.MEMORY[0xFF43];
-
-      uint8_t map_coord_y = scanline + SCY;
-      uint8_t map_coord_x = current + SCX;
+      uint8_t map_coord_y = scanline + GB.SCY;
+      uint8_t map_coord_x = current + GB.SCX;
 
       int16_t tile_id = bg_tile_map[(map_coord_x / 8) + (map_coord_y / 8) * 32];
 
@@ -204,6 +201,7 @@ void gbemu_ppu_draw(int cycles)
       uint8_t bp0 = *tile_data << map_coord_x;
       uint8_t bp1 = *(tile_data + 1) << map_coord_x;
       int id = ((bp0 >> 7) & 0x1) | ((bp1 >> 6) & 0x2);
+      id = (GB.BGP >> (id << 1)) & 0x3;
       gbemu_frame[current + scanline * GBEMU_DRAWBUFFER_W] = gbemu_palette[id];
 
        gbemu_object_attr_t* obj = (gbemu_object_attr_t*)GB.OAM;
@@ -226,7 +224,14 @@ void gbemu_ppu_draw(int cycles)
          uint8_t spr_bp1 = *(spr_tile_data + 1) << offsetX;
          int spr_id = ((spr_bp0 >> 7) & 0x1) | ((spr_bp1 >> 6) & 0x2);
          if (spr_id)
+         {
+            if(obj->palette)
+               spr_id = (GB.OBP1 >> (spr_id << 1)) & 0x3;
+            else
+               spr_id = (GB.OBP0 >> (spr_id << 1)) & 0x3;
+
             gbemu_frame[current + scanline * GBEMU_DRAWBUFFER_W] = gbemu_palette[spr_id];
+         }
 
       }while(++obj < (gbemu_object_attr_t*)&GB.OAM[0xA0]);
 

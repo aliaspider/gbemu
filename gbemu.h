@@ -94,6 +94,15 @@ typedef struct
                   unsigned LCY_eq_LY_IE   : 1;
                }
                LCD_STAT;
+               uint8_t SCY;
+               uint8_t SCX;
+               uint8_t LY;
+               uint8_t LYC;
+               unsigned :8;
+               uint8_t BGP;
+               uint8_t OBP0;
+               uint8_t OBP1;
+
             };
          };
 
