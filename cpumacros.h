@@ -620,7 +620,7 @@
       unsigned val = (reg << 1) | CPU_FLAG_C;\
       reg = val;\
       CPU_FLAG_C = val >> 8;\
-      CPU_FLAG_Z = !val;\
+      CPU_FLAG_Z = !reg;\
       CPU_FLAG_N = 0;\
       CPU_FLAG_H = 0;\
       CPU_cycles_add(2);\
@@ -632,7 +632,7 @@
       unsigned val = (GB_READ_U8(REG_HL) << 1) | CPU_FLAG_C;\
       GB_WRITE_U8(REG_HL, val);\
       CPU_FLAG_C = val >> 8;\
-      CPU_FLAG_Z = !val;\
+      CPU_FLAG_Z = !(val & 0xFF);\
       CPU_FLAG_N = 0;\
       CPU_FLAG_H = 0;\
       CPU_cycles_add(4);\
@@ -686,11 +686,11 @@
    }while(0)
 
 #define CPU_SRA(reg) \
+   CPU_FLAG_C = reg;\
    reg = (reg >> 1) | (reg & 0x80);\
    CPU_FLAG_Z = !reg;\
    CPU_FLAG_N = 0;\
    CPU_FLAG_H = 0;\
-   CPU_FLAG_C = 0;\
    CPU_cycles_add(2);\
    CPU_exec_next();
 
