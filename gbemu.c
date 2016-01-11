@@ -38,6 +38,11 @@ void gbemu_sanity_checks(void)
    gb_check_addr(GB.SND_regs.channels.master, 0xFF24, 0x3);
    gb_check_addr(GB.HRAM, 0xFF80, 0x7F);
 
+   gb_check_register8(GB.DIV, 0xFF04);
+   gb_check_register8(GB.TIMA, 0xFF05);
+   gb_check_register8(GB.TMA, 0xFF06);
+   gb_check_register8(GB.TAC, 0xFF07);
+
    gb_check_register8(GB.IF, 0xFF0F);
    gb_check_register8(GB.SND_regs.NR10, 0xFF10);
    gb_check_register8(GB.SND_regs.NR11, 0xFF11);

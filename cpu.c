@@ -209,6 +209,9 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
    case 0xFF00:
       GB.MEMORY[0xFF00] = (val & 0xF0) | (GB.MEMORY[0xFF00] & 0xF);
       return;
+   case 0xFF04:
+      GB.DIV = 0x00;
+      return;
    case 0xFF46:
       memcpy(GB.OAM, &GB.MEMORY[val << 8], 0xA0);
       return;
@@ -390,7 +393,8 @@ next_instruction:
           * 1: 0x03
           * 2: 0x0F
           * 3: 0x3F */
-         if (!(CPU.timer.ticks_last & ((0x3F0F03FF >> GB.TAC.clock_select) & 0xFF)))
+         static const uint8_t timer_masks[4] = {0xFF, 0x03, 0x0F, 0x3F};
+         if (!(CPU.timer.ticks_last & timer_masks[GB.TAC.clock_select]))
          {
             GB.TIMA++;
             if (!GB.TIMA)
