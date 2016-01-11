@@ -30,7 +30,7 @@ typedef struct __attribute((packed))
       unsigned palette : 1;
       unsigned flipX   : 1;
       unsigned flipY   : 1;
-      unsigned prio    : 1;
+      unsigned BG_priority : 1;
    };
 }
 gbemu_object_attr_t;
@@ -241,7 +241,7 @@ void gbemu_ppu_draw(int cycles)
       {
          do
          {
-            if (obj->prio && id > 0)
+            if (obj->BG_priority && id > 0)
                continue;
 
             int offsetX = current + 8 - (int)obj->posX;

@@ -421,10 +421,10 @@ next_instruction:
          GB.IF.LCD_stat = 0;
          CPU_INT(0x48);
       }
-      else if (GB.IF.timer & GB.IE.serial)
+      else if (GB.IF.timer & GB.IE.timer)
       {
          CPU.IME = 0;
-         GB.IF.serial = 0;
+         GB.IF.timer = 0;
          CPU_INT(0x50);
       }
       else if (GB.IF.serial & GB.IE.serial)
@@ -457,7 +457,7 @@ next_instruction:
 #endif
 next_instruction_nocheck:
 #ifdef DISASM
-   //   if(CPU.PC == 0x658F)
+//      if(CPU.PC == 0xC2B5)
 //   if (CPU.PC >= 0x4000)
 //      force_disasm = true;
 
