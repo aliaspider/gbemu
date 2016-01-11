@@ -57,6 +57,7 @@ typedef struct
    uint16_t PC;
    int cycles;
    int IME;
+   int HALT;
    struct
    {
       int ticks;

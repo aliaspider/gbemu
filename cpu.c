@@ -406,38 +406,39 @@ next_instruction:
       }
    }
 
+   if((GB.LCD_STAT.VBlank_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE1_VBLANK)) ||
+      (GB.LCD_STAT.HBlank_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE0_HBLANK)) ||
+      (GB.LCD_STAT.OAM_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE2_OAM_busy)) ||
+      (GB.LCD_STAT.LCY_eq_LY_IE && GB.LCD_STAT.LCY_eq_LY_flag))
+      GB.IF.LCD_stat = 1;
 
    if (CPU.IME)
    {
-      if ((GB.IF.Vblank & GB.IE.Vblank) && GB.LCDC.LCD_enable)
+      if ((GB.IF.Vblank && GB.IE.Vblank) && GB.LCDC.LCD_enable)
       {
          CPU.IME = 0;
          GB.IF.Vblank = 0;
          CPU_INT(0x40);
       }
-      else if ((GB.IF.LCD_stat & GB.IE.LCD_stat) &&
-               ((GB.LCD_STAT.VBlank_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE1_VBLANK)) ||
-                (GB.LCD_STAT.HBlank_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE0_HBLANK)) ||
-                (GB.LCD_STAT.OAM_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE2_OAM_busy)) ||
-                (GB.LCD_STAT.LCY_eq_LY_IE && GB.LCD_STAT.LCY_eq_LY_flag)))
+      else if (GB.IF.LCD_stat && GB.IE.LCD_stat)
       {
          CPU.IME = 0;
          GB.IF.LCD_stat = 0;
          CPU_INT(0x48);
       }
-      else if (GB.IF.timer & GB.IE.timer)
+      else if (GB.IF.timer && GB.IE.timer)
       {
          CPU.IME = 0;
          GB.IF.timer = 0;
          CPU_INT(0x50);
       }
-      else if (GB.IF.serial & GB.IE.serial)
+      else if (GB.IF.serial && GB.IE.serial)
       {
          CPU.IME = 0;
          GB.IF.serial = 0;
          CPU_INT(0x58);
       }
-      else if (GB.IF.joypad & GB.IE.joypad)
+      else if (GB.IF.joypad && GB.IE.joypad)
       {
          CPU.IME = 0;
          GB.IF.joypad = 0;
@@ -445,14 +446,12 @@ next_instruction:
       }
    }
 
-
 //#define DISASM
    //#define SKIP_COUNT 0x7490
    //#define SKIP_COUNT 0xEEE9
 //   #define SKIP_COUNT 0x000371A0
 #define SKIP_COUNT 0xFFFFFFFF
 //#define SKIP_COUNT 0x00000000
-
 
 
    static int total_exec = 0;
@@ -487,6 +486,19 @@ next_instruction_nocheck:
 //       fflush(stdout);
 //   if ((CPU.PC == 0xC4C2) && (CPU.A == 0xF1))
 //       fflush(stdout);
+
+   if(CPU.HALT)
+   {
+      if ((GB.IF.Vblank && GB.IE.Vblank)
+          || (GB.IF.LCD_stat && GB.IE.LCD_stat)
+          || (GB.IF.timer && GB.IE.timer)
+          || (GB.IF.serial && GB.IE.serial)
+          || (GB.IF.joypad && GB.IE.joypad))
+         CPU_disable_halt();
+
+      CPU_cycles_inc();
+      goto next_instruction;
+   }
 
    switch (GB_READ_PC())
    {

@@ -177,6 +177,7 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
    GB.CPU.PC = 0x100;
    GB.CPU.cycles = 0;
    GB.CPU.IME = 1;
+   GB.CPU.HALT = 0;
 
    GB.MEMORY[0xFF00] = 0x0F; //clear input
    GB.MEMORY[0xFF05] = 0x00; // TIMA

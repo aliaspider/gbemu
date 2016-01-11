@@ -45,8 +45,10 @@
 #define CPU_cycles_add(count) CPU.cycles += count
 #define CPU_exec_next()       goto next_instruction
 #define CPU_exec_next_nocheck()       goto next_instruction_nocheck
-#define CPU_enable_int()      CPU.IME = 1
+#define CPU_enable_int()       CPU.IME = 1
 #define CPU_disable_int()      CPU.IME = 0
+#define CPU_enable_halt()      CPU.HALT = 1
+#define CPU_disable_halt()     CPU.HALT = 0
 
 #define CPU_LD_r_imm8(reg) \
    reg = GB_READ_U8(REG_PC++);\
@@ -910,6 +912,7 @@
    do{\
    GB_WRITE_U8(--REG_SP, (uint8_t)(REG_PC >> 8));\
    GB_WRITE_U8(--REG_SP, (uint8_t)REG_PC);\
+   CPU_disable_halt();\
    REG_PC = addr;\
    CPU_cycles_add(5);\
    }while(0)
@@ -928,6 +931,7 @@
 /* incomplete : */
 
 #define CPU_HALT() \
+   CPU_enable_halt();\
    CPU_cycles_inc();\
    CPU_exec_next()
 
