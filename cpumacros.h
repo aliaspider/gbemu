@@ -203,8 +203,8 @@
 
 #define CPU_ADC_r_r(reg0, reg1) \
    do {\
-   uint8_t val = reg1 + CPU_FLAG_C;\
-   unsigned sum = reg0 + val;\
+   uint8_t val = reg1;\
+   unsigned sum = reg0 + val + CPU_FLAG_C;\
    CPU_FLAG_H = (reg0 ^ val ^ sum) >> 4;\
    reg0 = sum;\
    CPU_FLAG_Z = !reg0;\
@@ -216,8 +216,8 @@
 
 #define CPU_ADC_r_raddr(reg, reg_addr) \
    do {\
-   uint8_t val = GB_READ_U8(reg_addr) + CPU_FLAG_C;\
-   unsigned sum = reg + val;\
+   uint8_t val = GB_READ_U8(reg_addr);\
+   unsigned sum = reg + val + CPU_FLAG_C;\
    CPU_FLAG_H = (reg ^ val ^ sum) >> 4;\
    reg = sum;\
    CPU_FLAG_Z = !reg;\
