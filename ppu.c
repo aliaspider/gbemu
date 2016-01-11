@@ -129,7 +129,7 @@ void gbemu_draw_bgmap(void)
    else
    {
       int8_t* bg_tile_map = GB.LCDC.BG_tilemap_select ? (int8_t*)&GB.VRAM[0x1C00] : (int8_t*)&GB.VRAM[0x1800];
-      int8_t* win_tile_map = GB.LCDC.WIN_tilemap_select ? &GB.VRAM[0x1C00] : &GB.VRAM[0x1800];
+      int8_t* win_tile_map = GB.LCDC.WIN_tilemap_select ? (int8_t*)&GB.VRAM[0x1C00] : (int8_t*)&GB.VRAM[0x1800];
       uint8_t* tile_data_vram = &GB.VRAM[0x1000];
       int i, j;
 
@@ -165,7 +165,7 @@ void gbemu_draw_sprite_map(void)
 
    }
    else
-      for (i = 0; i < 0; i++, obj++)
+      for (i = 0; i < 40; i++, obj++)
          gbemu_draw_tile(&GB.VRAM[obj->ID << 4], &gbemu_spritemap_frame[(i & 0x1F) * 8 + (i >> 5) * 32 * GBEMU_DRAWBUFFER_W],
                          GBEMU_DRAWBUFFER_W, obj->palette? GB.OBP1: GB.OBP0);
 
