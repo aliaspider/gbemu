@@ -2,6 +2,7 @@ TARGET_NAME := gbemu
 DEBUG        = 0
 PERF_TEST    = 1
 VIEW_TILEMAP = 0
+USE_BIOS     = 0
 
 
 OBJECTS :=
@@ -187,6 +188,10 @@ ifeq ($(VIEW_TILEMAP),1)
 FLAGS += -DVIEW_TILEMAP
 endif
 
+ifeq ($(USE_BIOS),1)
+FLAGS += -DUSE_BIOS
+endif
+
 FLAGS += -Werror=implicit-function-declaration
 FLAGS += $(DEFS) $(WARNINGS) $(INCFLAGS) $(fpic)
 
@@ -203,10 +208,10 @@ else
 	$(CC) -o $@ $^ $(LDFLAGS)
 endif
 
-%.o: %.cpp libretro.h gbemu.h cpu.h ppu.h apu.h cart.h cpudisasm.h cpumacros.h
+%.o: %.cpp libretro.h gbemu.h cpu.h ppu.h apu.h cart.h cpudisasm.h cpumacros.h Makefile
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
-%.o: %.c libretro.h gbemu.h cpu.h ppu.h apu.h cart.h cpudisasm.h cpumacros.h
+%.o: %.c libretro.h gbemu.h cpu.h ppu.h apu.h cart.h cpudisasm.h cpumacros.h Makefile
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 clean:

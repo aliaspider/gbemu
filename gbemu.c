@@ -102,10 +102,17 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
 
    GB.cart_info = gbemu_get_cart_info(GB.HEADER.cart_info_id);
 
+#ifdef USE_BIOS
+   memcpy(GB.BIOS, GB.MEMORY, 0x100);
+#endif
 
    if(bios_data)
    {
+#ifdef USE_BIOS
+      memcpy(GB.MEMORY, bios_data, 0x100);
+#else
       memcpy(GB.BIOS, bios_data, 0x100);
+#endif
       printf("bios : ");
       for(i = 0; i< 0x100; i++)
       {
@@ -174,7 +181,13 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
    GB.CPU.DE = 0x00D8;
    GB.CPU.HL = 0x014D;
    GB.CPU.SP = 0xFFFE;
-   GB.CPU.PC = 0x100;
+#ifdef USE_BIOS
+   if(bios_data)
+      GB.CPU.PC = 0x0000;
+   else
+#else
+   GB.CPU.PC = 0x0100;
+#endif
    GB.CPU.cycles = 0;
    GB.CPU.IME = 1;
    GB.CPU.HALT = 0;

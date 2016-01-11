@@ -500,6 +500,11 @@ next_instruction_nocheck:
       goto next_instruction;
    }
 
+#ifdef USE_BIOS
+   if(CPU.PC == 0x100)
+      memcpy(GB.MEMORY, GB.BIOS, 0x100);
+#endif
+
    switch (GB_READ_PC())
    {
    // NOP
