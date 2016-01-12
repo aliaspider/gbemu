@@ -343,52 +343,18 @@ int8_t gbemu_read_s8(uint16_t addr)
 void gbemu_cpu_run(int cycles)
 {
    gbemu_cpu_t CPU = GB.CPU;
-   
+
    CPU.cycles = 0;
    GB.APU.cycles = 0;
    GB.APU.write_pos = gbemu_sound_buffer;
    int cycles_last = 0;
-   int h_cycles = 0;
+   static int h_cycles = 0;
 next_instruction:
 
    gbemu_ppu_draw(CPU.cycles);
    gbemu_apu_run(CPU.cycles);
 
    CPU.timer.ticks += CPU.cycles - cycles_last;
-
-   if (CPU.cycles > cycles)
-      goto cpu_exit;
-
-   h_cycles += CPU.cycles - cycles_last;
-   cycles_last = CPU.cycles;
-   if (h_cycles > GB_LINE_TICK_COUNT)
-   {
-      h_cycles -= GB_LINE_TICK_COUNT;
-      GB_LY++;
-      if (GB_LY >= GB_V_COUNT)
-      {
-         GB_LY = 0;
-         goto cpu_exit;
-      }
-   }
-
-   GB.LCD_STAT.LCY_eq_LY_flag = (GB_LY == GB_LYC);
-
-   if (GB.LCDC.LCD_enable)
-   {
-      if (GB_LY > 143)
-         GB.IF.Vblank = 1;
-
-      if (GB_LY > 143)
-         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE1_VBLANK;
-      else if (h_cycles > (40 + 20))
-         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE0_HBLANK;
-      else if (h_cycles > 20)
-         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE3_OAM_VRAM_busy;
-      else
-         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE2_OAM_busy;
-
-   }
 
    while (CPU.timer.ticks_last < CPU.timer.ticks)
    {
@@ -413,6 +379,40 @@ next_instruction:
             }
          }
       }
+   }
+
+   if (CPU.cycles > cycles)
+      goto cpu_exit;
+
+   h_cycles += CPU.cycles - cycles_last;
+   cycles_last = CPU.cycles;
+   if (h_cycles > GB_LINE_TICK_COUNT)
+   {
+      h_cycles -= GB_LINE_TICK_COUNT;
+      GB_LY++;
+      if (GB_LY >= GB_V_COUNT)
+      {
+         GB_LY = 0;
+         goto cpu_exit;
+      }
+   }
+
+   GB.LCD_STAT.LCY_eq_LY_flag = (GB_LY == GB_LYC);
+
+   if (GB.LCDC.LCD_enable)
+   {
+      if (GB_LY == 144)
+         GB.IF.Vblank = 1;
+
+      if (GB_LY > 143)
+         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE1_VBLANK;
+      else if (h_cycles > (40 + 20))
+         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE0_HBLANK;
+      else if (h_cycles > 20)
+         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE3_OAM_VRAM_busy;
+      else
+         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE2_OAM_busy;
+
    }
 
    if((GB.LCD_STAT.VBlank_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE1_VBLANK)) ||
@@ -456,10 +456,10 @@ next_instruction:
    }
 
 //#define DISASM
-   //#define SKIP_COUNT 0x7490
+   #define SKIP_COUNT 0x12000
    //#define SKIP_COUNT 0xEEE9
-//   #define SKIP_COUNT 0x000371A0
-#define SKIP_COUNT 0xFFFFFFFF
+//   #define SKIP_COUNT 0x00049B4C
+//#define SKIP_COUNT 0xFFFFFFFF
 //#define SKIP_COUNT 0x00000000
 
 
@@ -1649,9 +1649,9 @@ invalid_opcode:
       {
          extern retro_environment_t environ_cb;
          retro_sleep(10);
-         gbemu_printf("invalid opcode : 0x%02X\n",GB_READ_U8(CPU.PC - 1));
+         printf("invalid opcode : 0x%02X\n",GB_READ_U8(CPU.PC - 1));
          fflush(stdout);
-         //      DEBUG_BREAK();
+//         DEBUG_BREAK();
 
          if (environ_cb)
             environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
@@ -1670,9 +1670,9 @@ unknown_opcode:
       {
          extern retro_environment_t environ_cb;
          retro_sleep(10);
-         gbemu_printf("unknown opcode : 0x%02X\n", GB_READ_U8(CPU.PC - 1));
+         printf("unknown opcode : 0x%02X\n", GB_READ_U8(CPU.PC - 1));
          fflush(stdout);
-         //      DEBUG_BREAK();
+//         DEBUG_BREAK();
 
          if (environ_cb)
             environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
