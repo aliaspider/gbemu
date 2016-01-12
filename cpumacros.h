@@ -142,14 +142,12 @@
 #define CPU_PUSH_AF() CPU_PUSH_rr(REG_A, REG_F)
 
 
-
-/* todo: correct C/H flag when off8 < 0 */
 #define CPU_ADD_SP_off8() \
    do {\
       int8_t offset = GB_READ_S8(REG_PC++);\
       unsigned val = REG_SP + offset;\
       CPU_FLAG_H = (REG_SP ^ offset ^ val) >> 4;\
-      CPU_FLAG_C = (REG_SP ^ offset ^ val) >> 16;\
+      CPU_FLAG_C = (REG_SP ^ offset ^ val) >> 8;\
       REG_SP = (uint16_t)val;\
       CPU_FLAG_Z = 0;\
       CPU_FLAG_N = 0;\
@@ -157,13 +155,12 @@
       CPU_exec_next();\
    }while(0)
 
-/* todo: correct C/H flag when off8 < 0 */
 #define CPU_LD_HL_SP_off8() \
    do {\
       int8_t offset = GB_READ_S8(REG_PC++);\
       unsigned val = REG_SP + offset;\
       CPU_FLAG_H = (REG_SP ^ offset ^ val) >> 4;\
-      CPU_FLAG_C = (REG_SP ^ offset ^ val) >> 16;\
+      CPU_FLAG_C = (REG_SP ^ offset ^ val) >> 8;\
       REG_HL = (uint16_t)val;\
       CPU_FLAG_Z = 0;\
       CPU_FLAG_N = 0;\
