@@ -191,16 +191,12 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
    {
       if (addr < 0x2000)
       {
-         if(!(addr & 0x10))
+         if(!(addr & 0x100))
             GB.MBC.SRAM_enable = ((val & 0xF) == 0xA);
       }
-      else if((addr & 0x10))
-      {
-         val &= 0xF;
-         if(!val)
-            val = 0x1;
-         GB.MBC.active_ROM_bank = GB.MBC.ROM_banks[0][val];
-      }
+      else if((addr & 0x100))
+         GB.MBC.active_ROM_bank = GB.MBC.ROM_banks[0][val & 0xF];
+
       return;
    }
 
@@ -498,11 +494,11 @@ next_instruction_nocheck:
 
    if(CPU.HALT)
    {
-      if ((GB.IF.Vblank && GB.IE.Vblank)
-          || (GB.IF.LCD_stat && GB.IE.LCD_stat)
-          || (GB.IF.timer && GB.IE.timer)
-          || (GB.IF.serial && GB.IE.serial)
-          || (GB.IF.joypad && GB.IE.joypad))
+      if (GB.IF.Vblank
+          || GB.IF.LCD_stat
+          || GB.IF.timer
+          || GB.IF.serial
+          || GB.IF.joypad )
          CPU_disable_halt();
 
       CPU_cycles_inc();
