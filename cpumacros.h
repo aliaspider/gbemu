@@ -232,9 +232,10 @@
 #define CPU_SUB_r_r(reg0, reg1) \
    do {\
    uint8_t val = reg1;\
-   CPU_FLAG_H = (val & 0xF) > (reg0 & 0xF);\
-   CPU_FLAG_C = val > reg0;\
-   reg0 -= val;\
+   unsigned diff = reg0 - val;\
+   CPU_FLAG_H = (reg0 ^ val ^ diff) >> 4;\
+   CPU_FLAG_C = (diff) >> 8;\
+   reg0 = diff;\
    CPU_FLAG_Z = !reg0;\
    CPU_FLAG_N = 1;\
    CPU_cycles_inc();\
@@ -244,9 +245,10 @@
 #define CPU_SUB_r_raddr(reg, reg_addr) \
    do {\
    uint8_t val = GB_READ_U8(reg_addr);\
-   CPU_FLAG_H = (val & 0xF) > (reg & 0xF);\
-   CPU_FLAG_C = val > reg;\
-   reg -= val;\
+   unsigned diff = reg - val;\
+   CPU_FLAG_H = (reg ^ val ^ diff) >> 4;\
+   CPU_FLAG_C = diff >> 8;\
+   reg = diff;\
    CPU_FLAG_Z = !reg;\
    CPU_FLAG_N = 1;\
    CPU_cycles_add(2);\
@@ -257,10 +259,11 @@
 
 #define CPU_SBC_r_r(reg0, reg1) \
    do {\
-   uint8_t val = reg1 + CPU_FLAG_C;\
-   CPU_FLAG_H = (val & 0xF) > (reg0 & 0xF);\
-   CPU_FLAG_C = val > reg0;\
-   reg0 -= val;\
+   uint8_t val = reg1;\
+   unsigned diff = reg0 - CPU_FLAG_C - val;\
+   CPU_FLAG_H = (reg0 ^ val ^ diff) >> 4;\
+   CPU_FLAG_C = diff >> 8;\
+   reg0 = diff;\
    CPU_FLAG_Z = !reg0;\
    CPU_FLAG_N = 1;\
    CPU_cycles_inc();\
@@ -269,10 +272,11 @@
 
 #define CPU_SBC_r_raddr(reg, reg_addr) \
    do {\
-   uint8_t val = GB_READ_U8(reg_addr) + CPU_FLAG_C;\
-   CPU_FLAG_H = (val & 0xF) > (reg & 0xF);\
-   CPU_FLAG_C = val > reg;\
-   reg -= val;\
+   uint8_t val = GB_READ_U8(reg_addr);\
+   unsigned diff = reg - CPU_FLAG_C - val;\
+   CPU_FLAG_H = (reg ^ val ^ diff) >> 4;\
+   CPU_FLAG_C = diff >> 8;\
+   reg = diff;\
    CPU_FLAG_Z = !reg;\
    CPU_FLAG_N = 1;\
    CPU_cycles_add(2);\
