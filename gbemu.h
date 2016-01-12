@@ -160,6 +160,12 @@ typedef struct
 
    } MBC;
 
+   struct
+   {
+      uint8_t buffer[0x1000];
+      int write_index;
+   } serial_port;
+
 } gbemu_state_t;
 
 extern gbemu_state_t GB;
@@ -172,6 +178,8 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data);
 #define DEBUG_HOLD() do{printf("%s@%s:%d.\n",__FUNCTION__, __FILE__, __LINE__);fflush(stdout);gbemu_wait_for_input();}while(0)
 void gbemu_wait_for_input(void);
 void gbemu_check_exit_request(void);
+
+void gbemu_printf(const char* fmt, ...);
 
 #ifndef NDEBUG
 #ifdef _WIN32

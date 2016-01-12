@@ -1,5 +1,8 @@
+
 #include "gbemu.h"
+#include "libretro.h"
 #include "cpudisasm.h"
+
 #include <string.h>
 
 gbemu_state_t GB;
@@ -15,6 +18,20 @@ gbemu_state_t GB;
    }while(0)
 
 #define gb_check_register8(reg, addr) gb_check_addr(reg, addr, 1)
+
+
+void gbemu_printf(const char* fmt, ...)
+{
+   extern retro_log_printf_t log_cb;
+   if(log_cb)
+   {
+      va_list ap;
+
+      va_start(ap, fmt);
+         vprintf(fmt, ap);
+      va_end(ap);
+   }
+}
 
 void gbemu_sanity_checks(void)
 {
@@ -113,62 +130,62 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
 #else
       memcpy(GB.BIOS, bios_data, 0x100);
 #endif
-      printf("bios : ");
+      gbemu_printf("bios : ");
       for(i = 0; i< 0x100; i++)
       {
          if(!(i&0xF))
-            printf("\n");
-         printf("%02X ",GB.BIOS[i]);
+            gbemu_printf("\n");
+         gbemu_printf("%02X ",GB.BIOS[i]);
       }
-      printf("\n");
+      gbemu_printf("\n");
    }
 
-   printf("header info\n");
-   printf("buffer0 : ");
+   gbemu_printf("header info\n");
+   gbemu_printf("buffer0 : ");
    for(i = 0; i< 0x100; i++)
    {
       if(!(i&0xF))
-         printf("\n");
-      printf("%02X ",GB.HEADER.buffer0[i]);
+         gbemu_printf("\n");
+      gbemu_printf("%02X ",GB.HEADER.buffer0[i]);
    }
-   printf("\n");
-   printf("startup : 0x%08X\n", *(uint32_t*)GB.HEADER.startup);
-   printf("logo : ");
+   gbemu_printf("\n");
+   gbemu_printf("startup : 0x%08X\n", *(uint32_t*)GB.HEADER.startup);
+   gbemu_printf("logo : ");
    for(i = 0; i< 0x30; i++)
    {
       if(!(i&0xF))
-         printf("\n");
-      printf("%02X ",GB.HEADER.logo[i]);
+         gbemu_printf("\n");
+      gbemu_printf("%02X ",GB.HEADER.logo[i]);
    }
-   printf("\n");
+   gbemu_printf("\n");
 
-   printf("Title : %s\n", GB.HEADER.title);
-   printf("gbc Title : %s\n", GB.HEADER.gbc_title);
-   printf("gbc manufacturer code : 0x%02X%02X%02X%02X\n",
+   gbemu_printf("Title : %s\n", GB.HEADER.title);
+   gbemu_printf("gbc Title : %s\n", GB.HEADER.gbc_title);
+   gbemu_printf("gbc manufacturer code : 0x%02X%02X%02X%02X\n",
           (uint32_t)GB.HEADER.gbc_manufacturer_code[0],
           (uint32_t)GB.HEADER.gbc_manufacturer_code[1],
           (uint32_t)GB.HEADER.gbc_manufacturer_code[2],
           (uint32_t)GB.HEADER.gbc_manufacturer_code[3]);
-   printf("gbc flag : 0x%02X\n", (uint32_t)GB.HEADER.gbc_flag);
+   gbemu_printf("gbc flag : 0x%02X\n", (uint32_t)GB.HEADER.gbc_flag);
 
-   printf("new licencee code : 0x%04X\n", *(uint16_t*)GB.HEADER.new_licencee_code);
-   printf("super gameboy flag : 0x%02X\n", (uint32_t)GB.HEADER.sgb_flag);
+   gbemu_printf("new licencee code : 0x%04X\n", *(uint16_t*)GB.HEADER.new_licencee_code);
+   gbemu_printf("super gameboy flag : 0x%02X\n", (uint32_t)GB.HEADER.sgb_flag);
 
-   printf("cart type : 0x%02X --> %s%s%s%s%s\n",(uint32_t)GB.HEADER.cart_info_id,
+   gbemu_printf("cart type : 0x%02X --> %s%s%s%s%s\n",(uint32_t)GB.HEADER.cart_info_id,
           gbemu_get_cart_type_ident(GB.cart_info->type), GB.cart_info->RAM?"+RAM":"",
           GB.cart_info->BATTERY?"+BATTERY":"", GB.cart_info->TIMER?"+TIMER":"",
           GB.cart_info->RUMBLE?"+RUMBLE":"");
-   printf("cart type : 0x%02X\n", (uint32_t)GB.HEADER.cart_info_id);
-   printf("rom size : 0x%X --> 0x%X(%u, %u banks)\n", GB.HEADER.rom_size_id,
+   gbemu_printf("cart type : 0x%02X\n", (uint32_t)GB.HEADER.cart_info_id);
+   gbemu_printf("rom size : 0x%X --> 0x%X(%u, %u banks)\n", GB.HEADER.rom_size_id,
           gbemu_get_rom_size(GB.HEADER.rom_size_id),
           gbemu_get_rom_size(GB.HEADER.rom_size_id),
           gbemu_get_rom_size(GB.HEADER.rom_size_id) >> 14);
-   printf("ram size : %u\n", gbemu_get_ram_size(GB.HEADER.ram_size_id));
-   printf("destination code : 0x%02X (%sJapanese)\n", (uint32_t)GB.HEADER.destination_code, GB.HEADER.destination_code?"non-":"");
-   printf("old licencee code : 0x%02X\n", (uint32_t)GB.HEADER.old_licencee_code);
-   printf("version number : 0x%02X\n", (uint32_t)GB.HEADER.version_number);
-   printf("header checksum : 0x%02X\n", (uint32_t)GB.HEADER.header_checksum);
-   printf("global checksum : 0x%02X%02X\n", (uint32_t)GB.HEADER.global_checksum_high
+   gbemu_printf("ram size : %u\n", gbemu_get_ram_size(GB.HEADER.ram_size_id));
+   gbemu_printf("destination code : 0x%02X (%sJapanese)\n", (uint32_t)GB.HEADER.destination_code, GB.HEADER.destination_code?"non-":"");
+   gbemu_printf("old licencee code : 0x%02X\n", (uint32_t)GB.HEADER.old_licencee_code);
+   gbemu_printf("version number : 0x%02X\n", (uint32_t)GB.HEADER.version_number);
+   gbemu_printf("header checksum : 0x%02X\n", (uint32_t)GB.HEADER.header_checksum);
+   gbemu_printf("global checksum : 0x%02X%02X\n", (uint32_t)GB.HEADER.global_checksum_high
           , (uint32_t)GB.HEADER.global_checksum_low);
 
 //   gbemu_wait_for_input();
@@ -246,6 +263,9 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
       GB.MBC.type = CART_TYPE_MBC1;
    else
       GB.MBC.type = GB.cart_info->type;
+
+   memset(GB.serial_port.buffer, 0x00, sizeof(GB.serial_port.buffer));
+   GB.serial_port.write_index = 0;
 
    return true;
 }

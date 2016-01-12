@@ -8,7 +8,7 @@
 #include "retro_miscellaneous.h"
 #include "gbemu.h"
 
-static retro_log_printf_t log_cb = NULL;
+retro_log_printf_t log_cb = NULL;
 static retro_video_refresh_t video_cb = NULL;
 static retro_input_poll_t poll_cb = NULL;
 retro_input_state_t input_cb = NULL;
@@ -188,10 +188,10 @@ void retro_run(void)
 #endif
 
    audio_batch_cb(gbemu_sound_buffer, (GB.APU.write_pos - gbemu_sound_buffer) >> 1);
-//   printf("samples played : %i\n", (GB.APU.write_pos - gbemu_sound_buffer) >> 1);
+//   gbemu_printf("samples played : %i\n", (GB.APU.write_pos - gbemu_sound_buffer) >> 1);
    video_cb(gbemu_frame, GBEMU_DRAWBUFFER_W, GBEMU_DRAWBUFFER_H, GBEMU_DRAWBUFFER_W * 2);
 //   DEBUG_HOLD();
-//   printf("frame : %i\n", frames);
+//   gbemu_printf("frame : %i\n", frames);
    frames++;
    fflush(stdout);
 //   gbemu_check_exit_request();
@@ -224,12 +224,12 @@ bool retro_load_game(const struct retro_game_info* game)
 
    retro_sleep(10);
    fflush(stdout);
-   printf("romd info\n");
-   printf("path : %s\n", game->path);
-   printf("size : %u\n", game->size);
+   gbemu_printf("romd info\n");
+   gbemu_printf("path : %s\n", game->path);
+   gbemu_printf("size : %u\n", game->size);
    fflush(stdout);
 
-   printf("loading bios from : %s\n", bios_path);
+   gbemu_printf("loading bios from : %s\n", bios_path);
    FILE* fp = fopen(bios_path, "rb");
    if(fp)
    {
@@ -237,7 +237,7 @@ bool retro_load_game(const struct retro_game_info* game)
       fclose(fp);
    }
    else
-      printf("bios not found !\n");
+      gbemu_printf("bios not found !\n");
 
    gbemu_load_game(game->data, game->size, fp? bios_data: NULL);
 

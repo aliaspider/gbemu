@@ -209,6 +209,15 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
    case 0xFF00:
       GB.MEMORY[0xFF00] = (val & 0xF0) | (GB.MEMORY[0xFF00] & 0xF);
       return;
+
+   case 0xFF02:
+      GB.MEMORY[0xFF02] = val;
+      if(val == 0x81)
+      {
+         GB.serial_port.buffer[GB.serial_port.write_index++] = GB.SB;
+         GB.serial_port.write_index &= 0xFFF;
+      }
+      return;
    case 0xFF04:
       GB.DIV = 0x00;
       return;
@@ -1619,7 +1628,7 @@ next_instruction_nocheck:
          CPU_SET(7, REG_A);
 
       default:
-         printf("(0xCB)");
+         gbemu_printf("(0xCB)");
          goto unknown_opcode;
 
       }
@@ -1640,7 +1649,7 @@ invalid_opcode:
       {
          extern retro_environment_t environ_cb;
          retro_sleep(10);
-         printf("invalid opcode : 0x%02X\n",GB_READ_U8(CPU.PC - 1));
+         gbemu_printf("invalid opcode : 0x%02X\n",GB_READ_U8(CPU.PC - 1));
          fflush(stdout);
          //      DEBUG_BREAK();
 
@@ -1661,7 +1670,7 @@ unknown_opcode:
       {
          extern retro_environment_t environ_cb;
          retro_sleep(10);
-         printf("unknown opcode : 0x%02X\n", GB_READ_U8(CPU.PC - 1));
+         gbemu_printf("unknown opcode : 0x%02X\n", GB_READ_U8(CPU.PC - 1));
          fflush(stdout);
          //      DEBUG_BREAK();
 

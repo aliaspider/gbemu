@@ -219,7 +219,7 @@ $(TARGET_NAME)_test$(EXE_EXT) : $(OBJECTS) test.o
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 clean:
-	rm -f $(TARGET) $(OBJECTS) test.o
+	rm -f $(TARGET) $(OBJECTS) $(TARGET_NAME)_test$(EXE_EXT) test.o
 
 
 .PHONY: clean test
