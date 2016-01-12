@@ -69,14 +69,17 @@ int16_t input_state_callback(unsigned port, unsigned device,
 
 int main (int argc, const char** argv)
 {
-   if ((argc != 2) || !argv[1] || !argv[1][0])
+   if ((argc < 2) || !argv[1] || !argv[1][0])
    {
       printf("usage %s <path-to-test-rom>\n", argv[0]);
       return 1;
    }
 
-
-
+   bool verbose_on = true;
+   if(!strcmp(argv[1], "--silent"))
+      verbose_on = false;
+   if(argc == 3 && !strcmp(argv[2], "--silent"))
+      verbose_on = false;
 
    retro_set_environment(environment_callback);
    retro_set_video_refresh(video_callback);
@@ -124,9 +127,12 @@ int main (int argc, const char** argv)
          /* type 1*/
          if (run_info->status != 0x80)
          {
-            printf("%s\n", run_info->output);
-            printf("frames : %i\nexit code : 0x%02X\n%s\n", frames, run_info->status,
-                   run_info->status? "FAILURE !!": "SUCCESS !!");
+            if(verbose_on)
+            {
+               printf("%s\n", run_info->output);
+               printf("frames : %i\nexit code : 0x%02X\n%s\n", frames, run_info->status,
+                      run_info->status? "FAILURE !!": "SUCCESS !!");
+            }
             return (run_info->status);
          }
 
@@ -140,14 +146,20 @@ int main (int argc, const char** argv)
 //            printf("\n%s\n", &GB.serial_port.buffer[GB.serial_port.write_index - 7]);
             if(!memcmp(&GB.serial_port.buffer[GB.serial_port.write_index - 7], "Passed", 6))
             {
-               printf("%s\n", GB.serial_port.buffer);
-               printf("frames : %i\nSUCCESS !!\n", frames);
+               if(verbose_on)
+               {
+                  printf("%s\n", GB.serial_port.buffer);
+                  printf("frames : %i\nSUCCESS !!\n", frames);
+               }
                return 0;
             }
             else if(!memcmp(&GB.serial_port.buffer[GB.serial_port.write_index - 7], "Failed", 6))
             {
-               printf("%s\n", GB.serial_port.buffer);
-               printf("frames : %i\nFAILURE !!\n", frames);
+               if(verbose_on)
+               {
+                  printf("%s\n", GB.serial_port.buffer);
+                  printf("frames : %i\nFAILURE !!\n", frames);
+               }
                return 1;
             }
          }
@@ -155,8 +167,10 @@ int main (int argc, const char** argv)
 
    }
 
+   if(verbose_on)
+      printf("frames : %i (timeout)\nFAILURE !!\n", frames);
 
    retro_deinit();
 
-   return 0;
+   return 1;
 }
