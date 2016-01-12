@@ -171,7 +171,7 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
    printf("global checksum : 0x%02X%02X\n", (uint32_t)GB.HEADER.global_checksum_high
           , (uint32_t)GB.HEADER.global_checksum_low);
 
-   gbemu_wait_for_input();
+//   gbemu_wait_for_input();
 
    fflush(stdout);
 //   exit(0);
@@ -225,7 +225,7 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
    GB.MEMORY[0xFF4B] = 0x00; // WX
    GB.MEMORY[0xFFFF] = 0x00; // IE
 //   memset(GB.HRAM, 0, sizeof(GB.HRAM));
-   DEBUG_HOLD();
+//   DEBUG_HOLD();
 #else
    GB.CPU.AF = 0;
    GB.CPU.BC = 0;

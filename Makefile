@@ -169,6 +169,7 @@ else
    CFLAGS += -mno-ms-bitfields
    SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
    LDFLAGS += -static-libgcc -static-libstdc++ -lwinmm
+   EXE_EXT = .exe
 endif
 
 WARNINGS := -Wall
@@ -198,15 +199,18 @@ FLAGS += $(DEFS) $(WARNINGS) $(INCFLAGS) $(fpic)
 CXXFLAGS += $(FLAGS)
 CFLAGS += $(FLAGS)
 
-LDFLAGS += $(LIBM) $(fpic) $(SHARED)
-
 all: $(TARGET)
 $(TARGET): $(OBJECTS)
 ifeq ($(STATIC_LINKING), 1)
 	$(AR) rcs $@ $(OBJECTS)
 else
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(CC) -o $@ $^ $(LDFLAGS) $(LIBM) $(fpic) $(SHARED)
 endif
+
+test: $(TARGET_NAME)_test$(EXE_EXT)
+$(TARGET_NAME)_test$(EXE_EXT) : $(OBJECTS) test.o
+	$(CC) -o $@ $^ $(LDFLAGS) $(LIBM)
+
 
 %.o: %.cpp libretro.h gbemu.h cpu.h ppu.h apu.h cart.h cpudisasm.h cpumacros.h Makefile
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
@@ -215,7 +219,7 @@ endif
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 clean:
-	rm -f $(TARGET) $(OBJECTS)
+	rm -f $(TARGET) $(OBJECTS) test.o
 
 
-.PHONY: clean
+.PHONY: clean test
