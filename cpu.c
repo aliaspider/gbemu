@@ -301,6 +301,8 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
          GB.APU.noise.counter = (r << s);
       }
       return;
+   case 0xFF44:
+      return;
    default:
       if (addr < 0x8000)
          return;
@@ -424,6 +426,20 @@ next_instruction:
 //      (GB.LCD_STAT.OAM_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE2_OAM_busy)) ||
 //      (GB.LCD_STAT.LCY_eq_LY_IE && GB.LCD_STAT.LCY_eq_LY_flag))
 //      GB.IF.LCD_stat = 1;
+   if(CPU.HALT)
+   {
+      if (GB.IF.Vblank
+          || GB.IF.LCD_stat
+          || GB.IF.timer
+          || GB.IF.serial
+          || GB.IF.joypad )
+         CPU_disable_halt();
+      else
+      {
+         CPU_cycles_inc();
+         goto next_instruction;
+      }
+   }
 
    if (CPU.IME)
    {
@@ -500,18 +516,6 @@ next_instruction_nocheck:
 //   if ((CPU.PC == 0xC4C2) && (CPU.A == 0xF1))
 //       fflush(stdout);
 
-   if(CPU.HALT)
-   {
-      if (GB.IF.Vblank
-          || GB.IF.LCD_stat
-          || GB.IF.timer
-          || GB.IF.serial
-          || GB.IF.joypad )
-         CPU_disable_halt();
-
-      CPU_cycles_inc();
-      goto next_instruction;
-   }
 
 #ifdef USE_BIOS
    if(CPU.PC == 0x100)
