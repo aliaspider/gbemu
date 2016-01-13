@@ -23,27 +23,27 @@ void gbemu_apu_run(int target_cycles)
          {
             if (GB.SND_regs.channels.square1.length_enable)
             {
-               GB.APU.square1.length_counter.counter++;
-               if (GB.APU.square1.length_counter.counter & 0x40)
-                  GB.APU.square1.length_counter.ch_enabled = false;
+               GB.SND_regs.channels.square1.length_load++;
+               if (!GB.SND_regs.channels.square1.length_load)
+                  GB.SND_regs.channels.master.L_square1_enable = 0;
             }
             if (GB.SND_regs.channels.square2.length_enable)
             {
-               GB.APU.square2.length_counter.counter++;
-               if (GB.APU.square2.length_counter.counter & 0x40)
-                  GB.APU.square2.length_counter.ch_enabled = false;
+               GB.SND_regs.channels.square2.length_load++;
+               if (!GB.SND_regs.channels.square2.length_load)
+                  GB.SND_regs.channels.master.L_square2_enable = 0;
             }
             if (GB.SND_regs.channels.wave.length_enable)
             {
-               GB.APU.wave.length_counter.counter++;
-               if (GB.APU.wave.length_counter.counter & 0x100)
-                  GB.APU.wave.length_counter.ch_enabled = false;
+               GB.SND_regs.channels.wave.length_load++;
+               if (!GB.SND_regs.channels.wave.length_load)
+                  GB.SND_regs.channels.master.L_wave_enable = 0;
             }
             if (GB.SND_regs.channels.noise.length_enable)
             {
-               GB.APU.noise.length_counter.counter++;
-               if (GB.APU.noise.length_counter.counter & 0x40)
-                  GB.APU.noise.length_counter.ch_enabled = false;
+               GB.SND_regs.channels.noise.length_load++;
+               if (!GB.SND_regs.channels.noise.length_load)
+                  GB.SND_regs.channels.master.L_noise_enable = 0;
             }
          }
 
@@ -66,7 +66,7 @@ void gbemu_apu_run(int target_cycles)
                   {
                      GB.APU.square1.sweep.frequency += (GB.APU.square1.sweep.frequency >> GB.SND_regs.channels.square1.sweep_shift);
                      if (GB.APU.square1.sweep.frequency & 0x800)
-                        GB.APU.square1.length_counter.ch_enabled = false;
+                        GB.SND_regs.channels.master.L_square1_enable = 0;
                   }
 
                   GB.SND_regs.channels.square1.frequency = GB.APU.square1.sweep.frequency;
@@ -79,50 +79,58 @@ void gbemu_apu_run(int target_cycles)
          //if ((GB.APU.frame_sequencer.envelope_seq & 0x7) == GBEMU_TIMER_ENVELOPE_TICK_VAL)
          if ((GB.APU.frame_sequencer.counter & 0x7) == GBEMU_TIMER_ENVELOPE_TICK_VAL)
          {
-            if ((GB.APU.square1.envelope.counter) &&
-                  !(GB.APU.square1.envelope.counter & 0x8))
+            if (GB.APU.square1.envelope.counter)
             {
                GB.APU.square1.envelope.counter--;
-               if (GB.APU.square1.envelope.increment)
+               if (!GB.APU.square1.envelope.counter)
                {
-                  if (GB.APU.square1.envelope.volume != 0xF)
-                     GB.APU.square1.envelope.volume++;
-               }
-               else
-               {
-                  if (GB.APU.square1.envelope.volume)
-                     GB.APU.square1.envelope.volume--;
+                  GB.APU.square1.envelope.counter = GB.SND_regs.channels.square1.envelope_period;
+                  if (GB.APU.square1.envelope.increment)
+                  {
+                     if (GB.APU.square1.envelope.volume != 0xF)
+                        GB.APU.square1.envelope.volume++;
+                  }
+                  else
+                  {
+                     if (GB.APU.square1.envelope.volume)
+                        GB.APU.square1.envelope.volume--;
+                  }
                }
             }
-            if ((GB.APU.square2.envelope.counter) &&
-                  !(GB.APU.square2.envelope.counter & 0x8))
+            if (GB.APU.square2.envelope.counter)
             {
                GB.APU.square2.envelope.counter--;
-               if (GB.APU.square2.envelope.increment)
+               if (!GB.APU.square2.envelope.counter)
                {
-                  if (GB.APU.square2.envelope.volume != 0xF)
-                     GB.APU.square2.envelope.volume++;
-               }
-               else
-               {
-                  if (GB.APU.square2.envelope.volume)
-                     GB.APU.square2.envelope.volume--;
+                  GB.APU.square2.envelope.counter = GB.SND_regs.channels.square2.envelope_period;
+                  if (GB.APU.square2.envelope.increment)
+                  {
+                     if (GB.APU.square2.envelope.volume != 0xF)
+                        GB.APU.square2.envelope.volume++;
+                  }
+                  else
+                  {
+                     if (GB.APU.square2.envelope.volume)
+                        GB.APU.square2.envelope.volume--;
+                  }
                }
             }
-            if ((GB.APU.noise.envelope.counter) &&
-//                1)
-                  !(GB.APU.noise.envelope.counter & 0x8))
+            if (GB.APU.noise.envelope.counter)
             {
                GB.APU.noise.envelope.counter--;
-               if (GB.APU.noise.envelope.increment)
+               if (!GB.APU.noise.envelope.counter)
                {
-                  if (GB.APU.noise.envelope.volume != 0xF)
-                     GB.APU.noise.envelope.volume++;
-               }
-               else
-               {
-                  if (GB.APU.noise.envelope.volume)
-                     GB.APU.noise.envelope.volume--;
+                  GB.APU.noise.envelope.counter = GB.SND_regs.channels.noise.envelope_period;
+                  if (GB.APU.noise.envelope.increment)
+                  {
+                     if (GB.APU.noise.envelope.volume != 0xF)
+                        GB.APU.noise.envelope.volume++;
+                  }
+                  else
+                  {
+                     if (GB.APU.noise.envelope.volume)
+                        GB.APU.noise.envelope.volume--;
+                  }
                }
             }
          }
@@ -174,7 +182,7 @@ void gbemu_apu_run(int target_cycles)
 
       }
 
-      if (!(GB.APU.counter & 0xF))
+      if (!(GB.APU.counter & 0x3))
       {
          //            GB.APU.noise.down_counter--;
          //         if(!GB.APU.noise.down_counter)
@@ -212,16 +220,16 @@ void gbemu_apu_run(int target_cycles)
       }
       static int l = 0;
       static int r = 0;
-      if(GB.APU.square1.length_counter.ch_enabled)
+      if(GB.SND_regs.channels.master.L_square1_enable)
          l += (GB.APU.square1.value * GB.APU.square1.envelope.volume);
 //      l += GB.APU.square1.value;
-      if(GB.APU.square2.length_counter.ch_enabled)
+      if(GB.SND_regs.channels.master.L_square2_enable)
          l += (GB.APU.square2.value * GB.APU.square2.envelope.volume);
 //      l += GB.APU.square2.value;
-         if(GB.APU.wave.length_counter.ch_enabled)
-           l += (GB.APU.wave.value  );
+         if(GB.SND_regs.channels.master.L_wave_enable)
+           l += (GB.APU.wave.value );
 
-      if (GB.APU.noise.length_counter.ch_enabled)
+      if (GB.SND_regs.channels.master.L_noise_enable)
          l += (GB.APU.noise.value * GB.APU.noise.envelope.volume);
       //         l += GB.APU.noise.value << 3;
 

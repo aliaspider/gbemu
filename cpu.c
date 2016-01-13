@@ -97,25 +97,18 @@ uint8_t gbemu_read_u8(uint16_t addr)
       return GB.MEMORY[0xFF10] | 0x80;
    case 0xFF11: //NR11
    case 0xFF16: //NR21
-      return GB.MEMORY[0xFF10] | 0x3F;
+      return GB.MEMORY[addr] | 0x3F;
    case 0xFF14: //NR14
    case 0xFF19: //NR24
    case 0xFF1E: //NR34
    case 0xFF23: //NR44
-      return GB.MEMORY[0xFF10] | 0xBF;
+      return GB.MEMORY[addr] | 0xBF;
    case 0xFF1A: //NR30
-      return GB.MEMORY[0xFF10] | 0x7F;
+      return GB.MEMORY[0xFF1A] | 0x7F;
    case 0xFF1C: //NR32
-      return GB.MEMORY[0xFF10] | 0x9F;
+      return GB.MEMORY[0xFF1C] | 0x9F;
    case 0xFF26: //NR52
-   {
-      uint8_t val = (GB.MEMORY[0xFF10] & 0xF0) | 0x70;
-      if ((GB.APU.square1.length_counter.counter & 0x3F) ||
-            !GB.SND_regs.channels.square1.length_enable)
-         val |= 0x1;
-
-      return val;
-   }
+      return GB.MEMORY[0xFF26] | 0x70;
    case 0xFF13: //NR13
    case 0xFF15: //NR20
    case 0xFF18: //NR23
@@ -222,9 +215,7 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
       return;
    case 0xFF11: //NR11
       GB.MEMORY[0xFF11] = val;
-      //      GB.APU.square1.length_counter = GB.SND_regs.channels.square1.length_load;
-      GB.APU.square1.length_counter.counter = val & 0x3F;
-      GB.APU.square1.length_counter.ch_enabled = true;
+      GB.SND_regs.channels.master.L_square1_enable = 1;
       return;      
    case 0xFF12: //NR12
       GB.MEMORY[0xFF12] = val;
@@ -244,14 +235,13 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
          GB.APU.square1.sweep.counter = GB.SND_regs.channels.square1.sweep_period;
          GB.APU.square1.sweep.enabled = (GB.SND_regs.channels.square1.sweep_period && GB.SND_regs.channels.square1.sweep_shift);
 
-         GB.APU.square1.length_counter.ch_enabled = true;
-         GB.APU.square1.length_counter.counter = 0;
+         GB.SND_regs.channels.master.L_square1_enable = 1;
+         GB.SND_regs.channels.square1.length_load = 0;
       }
       return;
    case 0xFF16: //NR21
       GB.MEMORY[0xFF16] = val;
-      GB.APU.square2.length_counter.counter = val & 0x3F;
-      GB.APU.square2.length_counter.ch_enabled = true;
+      GB.SND_regs.channels.master.L_square2_enable = 1;
       return;
    case 0xFF19: //NR24
       GB.MEMORY[0xFF19] = val;
@@ -261,27 +251,25 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
          GB.APU.square2.envelope.volume = GB.SND_regs.channels.square2.envelope_starting_volume;
          GB.APU.square2.envelope.increment = GB.SND_regs.channels.square2.envelope_add_mode;
 
-         GB.APU.square2.length_counter.ch_enabled = true;
-         GB.APU.square2.length_counter.counter = 0;
+         GB.SND_regs.channels.master.L_square2_enable = 1;
+         GB.SND_regs.channels.square2.length_load = 0;
       }
       return;
    case 0xFF1B: //NR31
       GB.MEMORY[0xFF1B] = val;
-      GB.APU.wave.length_counter.counter = val & 0x3F;
-      GB.APU.wave.length_counter.ch_enabled = true;
+      GB.SND_regs.channels.master.L_wave_enable = 1;
       return;
    case 0xFF1E: //NR34
       GB.MEMORY[0xFF1E] = val;
       if (val & 0x80)
       {
-         GB.APU.wave.length_counter.ch_enabled = true;
-         GB.APU.wave.length_counter.counter = 0;
+         GB.SND_regs.channels.master.L_wave_enable = 1;
+         GB.SND_regs.channels.wave.length_load = 0;
       }
       return;
    case 0xFF20: //NR41
       GB.MEMORY[0xFF20] = val;
-      GB.APU.noise.length_counter.counter = val & 0x3F;
-      GB.APU.noise.length_counter.ch_enabled = true;
+   GB.SND_regs.channels.master.L_noise_enable = 1;
       return;
    case 0xFF22: //NR43
       GB.MEMORY[0xFF22] = val;
@@ -294,8 +282,8 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
          GB.APU.noise.envelope.volume = GB.SND_regs.channels.noise.envelope_starting_volume;
          GB.APU.noise.envelope.increment = GB.SND_regs.channels.noise.envelope_add_mode;
 
-         GB.APU.noise.length_counter.ch_enabled = true;
-         GB.APU.noise.length_counter.counter = 0;
+         GB.SND_regs.channels.master.L_noise_enable = 1;
+         GB.SND_regs.channels.noise.length_load = 0;
 
          GB.APU.noise.PRNG = 0x7FFF;
          GB.APU.noise.shift_counter = 1 << GB.SND_regs.channels.noise.clock_shift;
@@ -393,29 +381,49 @@ next_instruction:
       }
    }
 
-   GB.LCD_STAT.LCY_eq_LY_flag = (GB_LY == GB_LYC);
+
 
    if (GB.LCDC.LCD_enable)
    {
+      if (GB_LY == GB_LYC)
+      {
+         GB.LCD_STAT.LCY_eq_LY_flag = 1;
+         if(GB.LCD_STAT.LCY_eq_LY_IE)
+            GB.IF.LCD_stat = 1;
+      }
       if (GB_LY == 144)
+      {
          GB.IF.Vblank = 1;
+         if(GB.LCD_STAT.VBlank_IE)
+            GB.IF.LCD_stat = 1;
+      }
 
       if (GB_LY > 143)
          GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE1_VBLANK;
-      else if (h_cycles > (40 + 20))
+      else if (h_cycles > (42 + 20))
+      {
          GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE0_HBLANK;
+         if(GB.LCD_STAT.HBlank_IE)
+            GB.IF.LCD_stat = 1;
+      }
       else if (h_cycles > 20)
+      {
          GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE3_OAM_VRAM_busy;
+      }
       else
+      {
          GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE2_OAM_busy;
+         if(GB.LCD_STAT.OAM_IE)
+            GB.IF.LCD_stat = 1;
+      }
 
    }
 
-   if((GB.LCD_STAT.VBlank_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE1_VBLANK)) ||
-      (GB.LCD_STAT.HBlank_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE0_HBLANK)) ||
-      (GB.LCD_STAT.OAM_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE2_OAM_busy)) ||
-      (GB.LCD_STAT.LCY_eq_LY_IE && GB.LCD_STAT.LCY_eq_LY_flag))
-      GB.IF.LCD_stat = 1;
+//   if((GB.LCD_STAT.VBlank_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE1_VBLANK)) ||
+//      (GB.LCD_STAT.HBlank_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE0_HBLANK)) ||
+//      (GB.LCD_STAT.OAM_IE && (GB.LCD_STAT.mode_flag == GB_LCD_STAT_MODE2_OAM_busy)) ||
+//      (GB.LCD_STAT.LCY_eq_LY_IE && GB.LCD_STAT.LCY_eq_LY_flag))
+//      GB.IF.LCD_stat = 1;
 
    if (CPU.IME)
    {

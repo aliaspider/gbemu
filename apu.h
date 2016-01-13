@@ -152,11 +152,11 @@ typedef struct __attribute__((packed))
 }
 gbemu_sound_regs_t;
 
-#define GBEMU_TIMER_FRAME_SEQUENCER_PERIOD   (1 << 11)
+#define GBEMU_TIMER_FRAME_SEQUENCER_PERIOD   (1 << 13)
 #define GBEMU_TIMER_FRAME_SEQUENCER_MASK     (GBEMU_TIMER_FRAME_SEQUENCER_PERIOD - 1)
 
-#define GBEMU_TIMER_LENGTH_COUNTER_TICK_VAL   (0b000)
-#define GBEMU_TIMER_SWEEP_TICK_VAL            (0b010)
+#define GBEMU_TIMER_LENGTH_COUNTER_TICK_VAL   (0b0)
+#define GBEMU_TIMER_SWEEP_TICK_VAL            (0b10)
 #define GBEMU_TIMER_ENVELOPE_TICK_VAL         (0b111)
 
 static const int8_t gbemu_apu_square_wave_duty_cycles[4][8] =
@@ -199,11 +199,6 @@ typedef struct
       struct
       {
          int counter;
-         bool ch_enabled;
-      } length_counter;
-      struct
-      {
-         int counter;
          int volume;
          bool increment;
       } envelope;
@@ -224,11 +219,6 @@ typedef struct
          int counter;
          int period;
       } timer;
-      struct
-      {
-         int counter;
-         bool ch_enabled;
-      } length_counter;
       struct
       {
          int counter;
@@ -255,11 +245,6 @@ typedef struct
       struct
       {
          int counter;
-         bool ch_enabled;
-      } length_counter;
-      struct
-      {
-         int counter;
          bool enabled;
          int frequency;
       } sweep;
@@ -274,11 +259,6 @@ typedef struct
          int counter;
          int period;
       } timer;
-      struct
-      {
-         int counter;
-         bool ch_enabled;
-      } length_counter;
       struct
       {
          int counter;

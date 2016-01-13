@@ -207,7 +207,7 @@ void gbemu_ppu_draw(int cycles)
       if (scanline > 143)
          goto finish;
 
-      int current = i - (scanline * 4 * GB_LINE_TICK_COUNT) - 80;
+      int current = i - (scanline * 4 * GB_LINE_TICK_COUNT) - 88;
 
       if (current < 0 || current > 159)
          continue;
