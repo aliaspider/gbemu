@@ -277,12 +277,14 @@ void gbemu_ppu_draw(int cycles)
                continue;
 
             uint8_t* spr_tile_data = &GB.VRAM[GB.LCDC.OBJ_size? (obj->ID >> 1) << 5 : obj->ID << 4];
-            spr_tile_data += (offsetY << 1);
 
             if(obj->flipX)
                offsetX = 7 - offsetX;
             if(obj->flipY)
                offsetY = (GB.LCDC.OBJ_size? 15 : 7) - offsetY;
+
+
+            spr_tile_data += (offsetY << 1);
 
             uint8_t spr_bp0 = *spr_tile_data << offsetX;
             uint8_t spr_bp1 = *(spr_tile_data + 1) << offsetX;
