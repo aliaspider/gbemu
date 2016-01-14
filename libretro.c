@@ -188,7 +188,14 @@ void retro_run(void)
    gbemu_dump_memory();
 #endif
 
-   audio_batch_cb(gbemu_sound_buffer, (GB.APU.write_pos - gbemu_sound_buffer) >> 1);
+   uint16_t* read_pos = gbemu_sound_buffer;
+   while (read_pos < GB.APU.write_pos - 2048)
+   {
+      audio_batch_cb(read_pos, 1024);
+      read_pos += 2048;
+   }
+
+   audio_batch_cb(read_pos, (GB.APU.write_pos - read_pos) >> 1);
 //   gbemu_printf("samples played : %i\n", (GB.APU.write_pos - gbemu_sound_buffer) >> 1);
    video_cb(gbemu_frame, GBEMU_DRAWBUFFER_W, GBEMU_DRAWBUFFER_H, GBEMU_DRAWBUFFER_W * 2);
 //   DEBUG_HOLD();
