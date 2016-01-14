@@ -173,9 +173,15 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
       {
          GB.MBC.SRAM_banking_mode = val & 0x1;
          if (GB.MBC.SRAM_banking_mode)
+         {
+            GB.MBC.active_SRAM_bank = GB.MBC.SRAM_banks[GB.MBC.bank_id_high];
             GB.MBC.active_ROM_bank = GB.MBC.ROM_banks[0][GB.MBC.bank_id_low];
+         }
          else
+         {
             GB.MBC.active_SRAM_bank = GB.MBC.SRAM_banks[0];
+            GB.MBC.active_ROM_bank = GB.MBC.ROM_banks[GB.MBC.bank_id_high][GB.MBC.bank_id_low];
+         }
       }
 
       return;
@@ -309,7 +315,7 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
       else if ((addr >= 0xA000) && (addr < 0xC000))
       {
          if (GB.MBC.SRAM_enable)
-            GB.MBC.active_SRAM_bank[addr & 0x3FFF] = val;
+            GB.MBC.active_SRAM_bank[addr & 0x1FFF] = val;
       }
       else if ((addr >= 0xC000) && (addr < 0xDE00))
       {
