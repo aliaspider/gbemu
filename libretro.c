@@ -172,6 +172,7 @@ void retro_run(void)
       check_variables();
 
    poll_cb();
+   gbemu_update_input();
 
    RETRO_PERFORMANCE_INIT(gbemu_main_func);
    RETRO_PERFORMANCE_START(gbemu_main_func);

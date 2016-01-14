@@ -11,6 +11,7 @@
 #include "cpu.h"
 #include "ppu.h"
 #include "apu.h"
+#include "input.h"
 #include "cart.h"
 
 #define GB_LINE_TICK_COUNT  114
@@ -57,7 +58,8 @@ typedef struct
             uint8_t IO[0x80];  // @0xFF00
             struct __attribute__((packed))
             {
-               uint8_t JOYP;
+               gbemu_input_register_t JOYP;
+
                uint8_t SB; // serial data
                uint8_t SC; // serial control
                unsigned : 8;
@@ -165,6 +167,8 @@ typedef struct
       uint8_t buffer[0x1000];
       int write_index;
    } serial_port;
+
+   gbemu_input_state_t input;
 
 } gbemu_state_t;
 

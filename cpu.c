@@ -32,65 +32,14 @@ uint8_t gbemu_read_u8(uint16_t addr)
    {
    case 0xFF00:
    {
-      extern retro_input_state_t input_cb;
+      uint8_t val = GB.MEMORY[0xFF00] | 0x0F;
+      if (!GB.JOYP.dpad_select)
+         val &= 0xF0 | GB.input.dpad;
 
-      typedef union __attribute((packed))
-      {
-         struct
-         {
-            unsigned A       : 1;
-            unsigned B       : 1;
-            unsigned select  : 1;
-            unsigned start   : 1;
-            unsigned         : 4;
-         };
-         struct
-         {
-            unsigned right   : 1;
-            unsigned left    : 1;
-            unsigned up      : 1;
-            unsigned down    : 1;
-            unsigned         : 4;
-         };
-         struct
-         {
-            unsigned                : 4;
-            unsigned dpad_select    : 1;
-            unsigned buttons_select : 1;
-         };
-         uint8_t val;
-      }
-      gbemu_pad_t;
+      if (!GB.JOYP.buttons_select)
+         val &= 0xF0 | GB.input.buttons;
 
-      gbemu_pad_t gbemu_pad;
-
-      gbemu_pad.val = GB.MEMORY[0xFF00];
-
-      gbemu_pad.val |= 0xF;
-
-
-      if (!gbemu_pad.dpad_select)
-      {
-         gbemu_pad.right = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT);
-         gbemu_pad.left = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT);
-         gbemu_pad.up = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP);
-         gbemu_pad.down = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN);
-      }
-
-      if (!gbemu_pad.buttons_select)
-      {
-         gbemu_pad.A = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A);
-         gbemu_pad.B = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B);
-         gbemu_pad.select = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT);
-         gbemu_pad.start = !input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START);
-      }
-
-
-      if (!gbemu_pad.A)
-         fflush(stdout);
-
-      GB.MEMORY[0xFF00] = gbemu_pad.val;
-      return GB.MEMORY[0xFF00];
+      return val;
    }
 
    case 0xFF10: //NR10
