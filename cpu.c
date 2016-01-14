@@ -22,7 +22,7 @@ uint8_t gbemu_read_u8(uint16_t addr)
       else if ((addr >= 0xA000) && (addr < 0xC000))
       {
          if (GB.MBC.SRAM_enable)
-            return GB.MBC.active_SRAM_bank[addr & 0x3FFF];
+            return GB.MBC.active_SRAM_bank[addr & 0x1FFF];
          else
             return 0x00;
       }
