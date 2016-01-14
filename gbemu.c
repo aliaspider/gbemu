@@ -180,7 +180,7 @@ void gbemu_reset(void)
    GB.MBC.active_SRAM_bank = GB.MBC.SRAM_banks[0];
    GB.MBC.SRAM_enable = false;
    GB.MBC.SRAM_banking_mode = false;
-   GB.MBC.bank_id_low = 0;
+   GB.MBC.bank_id_low = 1;
    GB.MBC.bank_id_high = 0;
 
    if (GB.cart_info->type == CART_TYPE_MBC5)
