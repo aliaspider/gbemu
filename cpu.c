@@ -8,10 +8,6 @@
 #include <signal.h>
 #include <string.h>
 
-#define GB_LY  GB.MEMORY[0xFF44]
-#define GB_LYC GB.MEMORY[0xFF45]
-
-
 uint8_t gbemu_read_u8(uint16_t addr)
 {
 
@@ -165,9 +161,6 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
    case 0xFF04:
       GB.DIV = 0x00;
       return;
-   case 0xFF46:
-      memcpy(GB.OAM, &GB.MEMORY[val << 8], 0xA0);
-      return;
    case 0xFF11: //NR11
       GB.MEMORY[0xFF11] = val;
       GB.SND_regs.channels.master.square1_status_flag = 1; //??
@@ -250,7 +243,13 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
    case 0xFF26:
       GB.MEMORY[0xFF26] = (GB.MEMORY[0xFF26] & 0x0F) | (val & 0x80);
       return;
+   case 0xFF41:
+      GB.MEMORY[0xFF41] = (GB.MEMORY[0xFF41] & 0x07) | (val & 0xF8);
+      return;
    case 0xFF44:
+      return;
+   case 0xFF46:
+      memcpy(GB.OAM, &GB.MEMORY[val << 8], 0xA0);
       return;
    default:
       if (addr < 0x8000)
@@ -324,10 +323,10 @@ next_instruction:
    if (h_cycles > GB_LINE_TICK_COUNT)
    {
       h_cycles -= GB_LINE_TICK_COUNT;
-      GB_LY++;
-      if (GB_LY >= GB_V_COUNT)
+      GB.LY++;
+      if (GB.LY >= GB_V_COUNT)
       {
-         GB_LY = 0;
+         GB.LY = 0;
          goto cpu_exit;
       }
    }
@@ -336,37 +335,55 @@ next_instruction:
 
    if (GB.LCDC.LCD_enable)
    {
-      if (GB_LY == GB_LYC)
+      if (GB.LY == GB.LYC)
       {
-         GB.LCD_STAT.LCY_eq_LY_flag = 1;
-         if(GB.LCD_STAT.LCY_eq_LY_IE)
-            GB.IF.LCD_stat = 1;
+         if(!GB.LCD_STAT.LCY_eq_LY_flag)
+         {
+            GB.LCD_STAT.LCY_eq_LY_flag = 1;
+            if(GB.LCD_STAT.LCY_eq_LY_IE)
+               GB.IF.LCD_stat = 1;
+         }
       }
-      if (GB_LY == 144)
+      else
+         GB.LCD_STAT.LCY_eq_LY_flag = 0;
+
+
+      if (GB.LY < 144)
       {
+         if (h_cycles > (80 + 20))
+         {
+            if(GB.LCD_STAT.mode_flag != GB_LCD_STAT_MODE0_HBLANK)
+            {
+               GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE0_HBLANK;
+               if(GB.LCD_STAT.HBlank_IE)
+                  GB.IF.LCD_stat = 1;
+            }
+         }
+         else if (h_cycles > 20)
+         {
+            if(GB.LCD_STAT.mode_flag != GB_LCD_STAT_MODE3_OAM_VRAM_busy)
+               GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE3_OAM_VRAM_busy;
+         }
+         else
+         {
+            if (GB.LCD_STAT.mode_flag != GB_LCD_STAT_MODE2_OAM_busy)
+            {
+               GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE2_OAM_busy;
+               if(GB.LCD_STAT.OAM_IE)
+                  GB.IF.LCD_stat = 1;
+            }
+         }
+
+      }
+      else if (GB.LCD_STAT.mode_flag != GB_LCD_STAT_MODE1_VBLANK)
+      {
+         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE1_VBLANK;
          GB.IF.Vblank = 1;
          if(GB.LCD_STAT.VBlank_IE)
             GB.IF.LCD_stat = 1;
       }
 
-      if (GB_LY > 143)
-         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE1_VBLANK;
-      else if (h_cycles > (42 + 20))
-      {
-         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE0_HBLANK;
-         if(GB.LCD_STAT.HBlank_IE)
-            GB.IF.LCD_stat = 1;
-      }
-      else if (h_cycles > 20)
-      {
-         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE3_OAM_VRAM_busy;
-      }
-      else
-      {
-         GB.LCD_STAT.mode_flag = GB_LCD_STAT_MODE2_OAM_busy;
-         if(GB.LCD_STAT.OAM_IE)
-            GB.IF.LCD_stat = 1;
-      }
+
 
    }
 

@@ -186,7 +186,7 @@ void gbemu_ppu_draw(int cycles)
 {
    static int last_cycles = 0;
 
-   cycles *= 4;
+   cycles *= 2;
 
    if (!GB.LCDC.LCD_enable)
    {
@@ -202,12 +202,12 @@ void gbemu_ppu_draw(int cycles)
 
    for (i = last_cycles; i < cycles ; i++)
    {
-      int scanline = i / (4 * GB_LINE_TICK_COUNT);
+      int scanline = i / (2 * GB_LINE_TICK_COUNT);
 
       if (scanline > 143)
          goto finish;
 
-      int current = i - (scanline * 4 * GB_LINE_TICK_COUNT) - 88;
+      int current = i - (scanline * 2 * GB_LINE_TICK_COUNT) - 40;
 
       if (current < 0 || current > 159)
          continue;

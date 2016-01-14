@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define GBEMU_AUDIO_DECIMATION_RATE 128
+#define GBEMU_AUDIO_DECIMATION_RATE 1
 
 typedef struct __attribute__((packed))
 {
