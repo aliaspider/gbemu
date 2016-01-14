@@ -176,7 +176,7 @@ void gbemu_apu_run(int target_cycles)
             GB.APU.wave.counter = GB.SND_regs.channels.wave.frequency;
             GB.APU.wave.pos ++;
             GB.APU.wave.pos &= 0x1F;
-            GB.APU.wave.value = ((GB.SND_regs.WAVE_TABLE[GB.APU.wave.pos >> 1] >> ((GB.APU.wave.pos & 0x1) * 0x4)) & 0xF)
+            GB.APU.wave.value = ((GB.SND_regs.WAVE_TABLE[GB.APU.wave.pos >> 1] >> (0x4 - (GB.APU.wave.pos & 0x1) * 0x4)) & 0xF)
                                 >> ((unsigned)GB.SND_regs.channels.wave.volume_code - 1);
          }
 
@@ -226,7 +226,7 @@ void gbemu_apu_run(int target_cycles)
       if(GB.SND_regs.channels.master.L_square2_enable)
          l += (GB.APU.square2.value * GB.APU.square2.envelope.volume);
 //      l += GB.APU.square2.value;
-         if(GB.SND_regs.channels.master.L_wave_enable)
+         if(GB.SND_regs.channels.master.L_wave_enable && GB.SND_regs.channels.wave.DAC_power)
            l += (GB.APU.wave.value );
 
       if (GB.SND_regs.channels.master.L_noise_enable)
