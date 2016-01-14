@@ -102,6 +102,92 @@ void gbemu_sanity_checks(void)
 }
 
 
+void gbemu_reset(void)
+{
+   memset(&GB.APU, 0x00, sizeof(GB.APU));
+   memset(&GB.CPU, 0x00, sizeof(GB.CPU));
+   memset(&GB.VRAM, 0x00, sizeof(GB.VRAM));
+   memset(&GB.OAM, 0x00, sizeof(GB.OAM));
+   memset(&GB.WRAM, 0x00, sizeof(GB.HRAM));
+   memset(&GB.IO, 0x00, sizeof(GB.IO));
+   memset(&GB.MEMORY[0xFF00], 0x00, 0x100);
+   memset(&GB.serial_port, 0x00, sizeof(GB.serial_port));
+#if 1
+   GB.CPU.AF = 0x01B0;
+   GB.CPU.BC = 0x0013;
+   GB.CPU.DE = 0x00D8;
+   GB.CPU.HL = 0x014D;
+   GB.CPU.SP = 0xFFFE;
+#ifdef USE_BIOS
+   if(bios_data)
+      GB.CPU.PC = 0x0000;
+   else
+#else
+   GB.CPU.PC = 0x0100;
+#endif
+   GB.CPU.cycles = 0;
+   GB.CPU.IME = 1;
+   GB.CPU.HALT = 0;
+
+   GB.MEMORY[0xFF00] = 0x0F; //clear input
+   GB.MEMORY[0xFF05] = 0x00; // TIMA
+   GB.MEMORY[0xFF06] = 0x00; // TMA
+   GB.MEMORY[0xFF07] = 0x00; // TAC
+   GB.MEMORY[0xFF10] = 0x80; // NR10
+   GB.MEMORY[0xFF11] = 0xBF; // NR11
+   GB.MEMORY[0xFF12] = 0xF3; // NR12
+   GB.MEMORY[0xFF14] = 0xBF; // NR14
+   GB.MEMORY[0xFF16] = 0x3F; // NR21
+   GB.MEMORY[0xFF17] = 0x00; // NR22
+   GB.MEMORY[0xFF19] = 0xBF; // NR24
+   GB.MEMORY[0xFF1A] = 0x7F; // NR30
+   GB.MEMORY[0xFF1B] = 0xFF; // NR31
+   GB.MEMORY[0xFF1C] = 0x9F; // NR32
+   GB.MEMORY[0xFF1E] = 0xBF; // NR33
+   GB.MEMORY[0xFF20] = 0xFF; // NR41
+   GB.MEMORY[0xFF21] = 0x00; // NR42
+   GB.MEMORY[0xFF22] = 0x00; // NR43
+   GB.MEMORY[0xFF23] = 0xBF; // NR30
+   GB.MEMORY[0xFF24] = 0x77; // NR50
+   GB.MEMORY[0xFF25] = 0xF3; // NR51
+   GB.MEMORY[0xFF26] = 0xF1; // NR52 (GB = 0xF1, SGB = 0xF0)
+   GB.MEMORY[0xFF40] = 0x91; // LCDC
+   GB.MEMORY[0xFF42] = 0x00; // SCY
+   GB.MEMORY[0xFF43] = 0x00; // SCX
+   GB.MEMORY[0xFF45] = 0x00; // LYC
+   GB.MEMORY[0xFF47] = 0xFC; // BGP
+   GB.MEMORY[0xFF48] = 0xFF; // OBP0
+   GB.MEMORY[0xFF49] = 0xFF; // OBP1
+   GB.MEMORY[0xFF4A] = 0x00; // WY
+   GB.MEMORY[0xFF4B] = 0x00; // WX
+   GB.MEMORY[0xFFFF] = 0x00; // IE
+//   memset(GB.HRAM, 0, sizeof(GB.HRAM));
+//   DEBUG_HOLD();
+#else
+   GB.CPU.AF = 0;
+   GB.CPU.BC = 0;
+   GB.CPU.DE = 0;
+   GB.CPU.HL = 0;
+   GB.CPU.SP = 0xFFFE;
+   GB.CPU.PC = 0x100;
+   GB.CPU.cycles = 0;
+   GB.CPU.interrupts_enabled = 1;
+#endif
+
+
+   GB.MBC.active_ROM_bank = GB.MBC.ROM_banks[0][1];
+   GB.MBC.active_SRAM_bank = GB.MBC.SRAM_banks[0];
+   GB.MBC.SRAM_enable = false;
+   GB.MBC.SRAM_banking_mode = false;
+   GB.MBC.bank_id_low = 0;
+   GB.MBC.bank_id_high = 0;
+
+   if (GB.cart_info->type == CART_TYPE_MBC5)
+      GB.MBC.type = CART_TYPE_MBC1;
+   else
+      GB.MBC.type = GB.cart_info->type;
+
+}
 
 bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
 {
@@ -192,80 +278,8 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
 
    fflush(stdout);
 //   exit(0);
-#if 1
-   GB.CPU.AF = 0x01B0;
-   GB.CPU.BC = 0x0013;
-   GB.CPU.DE = 0x00D8;
-   GB.CPU.HL = 0x014D;
-   GB.CPU.SP = 0xFFFE;
-#ifdef USE_BIOS
-   if(bios_data)
-      GB.CPU.PC = 0x0000;
-   else
-#else
-   GB.CPU.PC = 0x0100;
-#endif
-   GB.CPU.cycles = 0;
-   GB.CPU.IME = 1;
-   GB.CPU.HALT = 0;
 
-   GB.MEMORY[0xFF00] = 0x0F; //clear input
-   GB.MEMORY[0xFF05] = 0x00; // TIMA
-   GB.MEMORY[0xFF06] = 0x00; // TMA
-   GB.MEMORY[0xFF07] = 0x00; // TAC
-   GB.MEMORY[0xFF10] = 0x80; // NR10
-   GB.MEMORY[0xFF11] = 0xBF; // NR11
-   GB.MEMORY[0xFF12] = 0xF3; // NR12
-   GB.MEMORY[0xFF14] = 0xBF; // NR14
-   GB.MEMORY[0xFF16] = 0x3F; // NR21
-   GB.MEMORY[0xFF17] = 0x00; // NR22
-   GB.MEMORY[0xFF19] = 0xBF; // NR24
-   GB.MEMORY[0xFF1A] = 0x7F; // NR30
-   GB.MEMORY[0xFF1B] = 0xFF; // NR31
-   GB.MEMORY[0xFF1C] = 0x9F; // NR32
-   GB.MEMORY[0xFF1E] = 0xBF; // NR33
-   GB.MEMORY[0xFF20] = 0xFF; // NR41
-   GB.MEMORY[0xFF21] = 0x00; // NR42
-   GB.MEMORY[0xFF22] = 0x00; // NR43
-   GB.MEMORY[0xFF23] = 0xBF; // NR30
-   GB.MEMORY[0xFF24] = 0x77; // NR50
-   GB.MEMORY[0xFF25] = 0xF3; // NR51
-   GB.MEMORY[0xFF26] = 0xF1; // NR52 (GB = 0xF1, SGB = 0xF0)
-   GB.MEMORY[0xFF40] = 0x91; // LCDC
-   GB.MEMORY[0xFF42] = 0x00; // SCY
-   GB.MEMORY[0xFF43] = 0x00; // SCX
-   GB.MEMORY[0xFF45] = 0x00; // LYC
-   GB.MEMORY[0xFF47] = 0xFC; // BGP
-   GB.MEMORY[0xFF48] = 0xFF; // OBP0
-   GB.MEMORY[0xFF49] = 0xFF; // OBP1
-   GB.MEMORY[0xFF4A] = 0x00; // WY
-   GB.MEMORY[0xFF4B] = 0x00; // WX
-   GB.MEMORY[0xFFFF] = 0x00; // IE
-//   memset(GB.HRAM, 0, sizeof(GB.HRAM));
-//   DEBUG_HOLD();
-#else
-   GB.CPU.AF = 0;
-   GB.CPU.BC = 0;
-   GB.CPU.DE = 0;
-   GB.CPU.HL = 0;
-   GB.CPU.SP = 0xFFFE;
-   GB.CPU.PC = 0x100;
-   GB.CPU.cycles = 0;
-   GB.CPU.interrupts_enabled = 1;
-#endif
-
-
-   GB.MBC.active_ROM_bank = GB.MBC.ROM_banks[0][1];
-   GB.MBC.active_SRAM_bank = GB.MBC.SRAM_banks[0];
-   GB.MBC.SRAM_enable = false;
-
-   if (GB.cart_info->type == CART_TYPE_MBC5)
-      GB.MBC.type = CART_TYPE_MBC1;
-   else
-      GB.MBC.type = GB.cart_info->type;
-
-   memset(GB.serial_port.buffer, 0x00, sizeof(GB.serial_port.buffer));
-   GB.serial_port.write_index = 0;
+   gbemu_reset();
 
    return true;
 }

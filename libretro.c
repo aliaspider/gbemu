@@ -160,6 +160,7 @@ static void init_descriptors(void)
 
 void retro_reset(void)
 {
+   gbemu_reset();
 }
 
 void retro_run(void)
