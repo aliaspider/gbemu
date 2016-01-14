@@ -272,7 +272,6 @@ typedef struct
          int frequency;
       } sweep;
       int down_counter;
-      int shift_counter;
       int PRNG;
       int value;
       int counter;

@@ -221,7 +221,7 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
       return;
    case 0xFF11: //NR11
       GB.MEMORY[0xFF11] = val;
-      GB.SND_regs.channels.master.L_square1_enable = 1;
+      GB.SND_regs.channels.master.square1_status_flag = 1; //??
       return;      
    case 0xFF12: //NR12
       GB.MEMORY[0xFF12] = val;
@@ -241,13 +241,13 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
          GB.APU.square1.sweep.counter = GB.SND_regs.channels.square1.sweep_period;
          GB.APU.square1.sweep.enabled = (GB.SND_regs.channels.square1.sweep_period && GB.SND_regs.channels.square1.sweep_shift);
 
-         GB.SND_regs.channels.master.L_square1_enable = 1;
+         GB.SND_regs.channels.master.square1_status_flag = 1;
          GB.SND_regs.channels.square1.length_load = 0;
       }
       return;
    case 0xFF16: //NR21
       GB.MEMORY[0xFF16] = val;
-      GB.SND_regs.channels.master.L_square2_enable = 1;
+      GB.SND_regs.channels.master.square2_status_flag = 1; //??
       return;
    case 0xFF19: //NR24
       GB.MEMORY[0xFF19] = val;
@@ -257,25 +257,25 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
          GB.APU.square2.envelope.volume = GB.SND_regs.channels.square2.envelope_starting_volume;
          GB.APU.square2.envelope.increment = GB.SND_regs.channels.square2.envelope_add_mode;
 
-         GB.SND_regs.channels.master.L_square2_enable = 1;
+         GB.SND_regs.channels.master.square2_status_flag = 1;
          GB.SND_regs.channels.square2.length_load = 0;
       }
       return;
    case 0xFF1B: //NR31
       GB.MEMORY[0xFF1B] = val;
-      GB.SND_regs.channels.master.L_wave_enable = 1;
+      GB.SND_regs.channels.master.wave_status_flag = 1;
       return;
    case 0xFF1E: //NR34
       GB.MEMORY[0xFF1E] = val;
       if (val & 0x80)
       {
-         GB.SND_regs.channels.master.L_wave_enable = 1;
+         GB.SND_regs.channels.master.wave_status_flag = 1;
          GB.SND_regs.channels.wave.length_load = 0;
       }
       return;
    case 0xFF20: //NR41
       GB.MEMORY[0xFF20] = val;
-   GB.SND_regs.channels.master.L_noise_enable = 1;
+   GB.SND_regs.channels.master.noise_status_flag = 1; //??
       return;
    case 0xFF22: //NR43
       GB.MEMORY[0xFF22] = val;
@@ -288,24 +288,18 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
          GB.APU.noise.envelope.volume = GB.SND_regs.channels.noise.envelope_starting_volume;
          GB.APU.noise.envelope.increment = GB.SND_regs.channels.noise.envelope_add_mode;
 
-         GB.SND_regs.channels.master.L_noise_enable = 1;
+         GB.SND_regs.channels.master.noise_status_flag = 1;
          GB.SND_regs.channels.noise.length_load = 0;
 
          GB.APU.noise.PRNG = 0x7FFF;
-         GB.APU.noise.shift_counter = 1 << GB.SND_regs.channels.noise.clock_shift;
-         GB.APU.noise.down_counter = GB.SND_regs.channels.noise.divisor_code;
-
-         GB.APU.noise.counter--;
-         unsigned s = (GB.SND_regs.channels.noise.clock_shift) + 3;
-         unsigned r = GB.SND_regs.channels.noise.divisor_code;
-
-         if (!r) {
-            r = 1;
-            --s;
-         }
-
-         GB.APU.noise.counter = (r << s);
+         if(GB.SND_regs.channels.noise.divisor_code)
+            GB.APU.noise.down_counter = GB.SND_regs.channels.noise.divisor_code << (GB.SND_regs.channels.noise.clock_shift + 3);
+         else
+            GB.APU.noise.down_counter = 1 << (GB.SND_regs.channels.noise.clock_shift + 2);
       }
+      return;
+   case 0xFF26:
+      GB.MEMORY[0xFF26] = (GB.MEMORY[0xFF26] & 0x0F) | (val & 0x80);
       return;
    case 0xFF44:
       return;

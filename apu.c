@@ -25,25 +25,25 @@ void gbemu_apu_run(int target_cycles)
             {
                GB.SND_regs.channels.square1.length_load++;
                if (!GB.SND_regs.channels.square1.length_load)
-                  GB.SND_regs.channels.master.L_square1_enable = 0;
+                  GB.SND_regs.channels.master.square1_status_flag = 0;
             }
             if (GB.SND_regs.channels.square2.length_enable)
             {
                GB.SND_regs.channels.square2.length_load++;
                if (!GB.SND_regs.channels.square2.length_load)
-                  GB.SND_regs.channels.master.L_square2_enable = 0;
+                  GB.SND_regs.channels.master.square2_status_flag = 0;
             }
             if (GB.SND_regs.channels.wave.length_enable)
             {
                GB.SND_regs.channels.wave.length_load++;
                if (!GB.SND_regs.channels.wave.length_load)
-                  GB.SND_regs.channels.master.L_wave_enable = 0;
+                  GB.SND_regs.channels.master.wave_status_flag = 0;
             }
             if (GB.SND_regs.channels.noise.length_enable)
             {
                GB.SND_regs.channels.noise.length_load++;
                if (!GB.SND_regs.channels.noise.length_load)
-                  GB.SND_regs.channels.master.L_noise_enable = 0;
+                  GB.SND_regs.channels.master.noise_status_flag = 0;
             }
          }
 
@@ -66,7 +66,7 @@ void gbemu_apu_run(int target_cycles)
                   {
                      GB.APU.square1.sweep.frequency += (GB.APU.square1.sweep.frequency >> GB.SND_regs.channels.square1.sweep_shift);
                      if (GB.APU.square1.sweep.frequency & 0x800)
-                        GB.SND_regs.channels.master.L_square1_enable = 0;
+                        GB.SND_regs.channels.master.square1_status_flag = 0;
                   }
 
                   GB.SND_regs.channels.square1.frequency = GB.APU.square1.sweep.frequency;
@@ -182,56 +182,60 @@ void gbemu_apu_run(int target_cycles)
 
       }
 
-      if (!(GB.APU.counter & 0x3))
+      if (!(GB.APU.counter & 0x7))
       {
-         //            GB.APU.noise.down_counter--;
-         //         if(!GB.APU.noise.down_counter)
-         if (GB.APU.noise.down_counter)
-            GB.APU.noise.down_counter--;
-         //         else
+         GB.APU.noise.down_counter--;
+         if(!GB.APU.noise.down_counter)
          {
-            if (!GB.SND_regs.channels.noise.divisor_code)
-               GB.APU.noise.down_counter = 1;
+            if(GB.SND_regs.channels.noise.divisor_code)
+               GB.APU.noise.down_counter = GB.SND_regs.channels.noise.divisor_code << (GB.SND_regs.channels.noise.clock_shift + 1);
             else
-               GB.APU.noise.down_counter = GB.SND_regs.channels.noise.divisor_code << 1;
+               GB.APU.noise.down_counter = 1 << (GB.SND_regs.channels.noise.clock_shift + 0);
 
-            //            GB.APU.noise.down_counter = GB.SND_regs.channels.noise.divisor_code;
-            GB.APU.noise.shift_counter--;
-
-            if (!GB.APU.noise.shift_counter)
+            if ((GB.SND_regs.channels.noise.clock_shift < 14))
             {
-               GB.APU.noise.shift_counter = 1 << (GB.SND_regs.channels.noise.clock_shift + 1);
-
-               int XOR_val = GB.APU.noise.PRNG ^ (GB.APU.noise.PRNG >> 1);
+               int XOR_val = (GB.APU.noise.PRNG ^ (GB.APU.noise.PRNG >> 1)) & 0x1;
+               GB.APU.noise.PRNG = (GB.APU.noise.PRNG >> 1) | (XOR_val << 14);
                if (GB.SND_regs.channels.noise.LFSR_width_mode)
-               {
-                  XOR_val >>= 0x5;
-                  GB.APU.noise.value = ((GB.APU.noise.PRNG >> 7) & 0x1) ^ 0x1;
-               }
-               else
-               {
-                  XOR_val >>= 0xD;
-                  GB.APU.noise.value = ((GB.APU.noise.PRNG >> 15) & 0x1) ^ 0x1;
-               }
-               GB.APU.noise.PRNG = (GB.APU.noise.PRNG << 1) | (XOR_val & 0x1);
+                  GB.APU.noise.PRNG = (GB.APU.noise.PRNG & ~0x40) | (XOR_val << 6);
+
+               GB.APU.noise.value = ~(GB.APU.noise.PRNG & 0x1);
             }
 
          }
       }
       static int l = 0;
       static int r = 0;
-      if(GB.SND_regs.channels.master.L_square1_enable)
-         l += (GB.APU.square1.value * GB.APU.square1.envelope.volume);
-//      l += GB.APU.square1.value;
-      if(GB.SND_regs.channels.master.L_square2_enable)
-         l += (GB.APU.square2.value * GB.APU.square2.envelope.volume);
-//      l += GB.APU.square2.value;
-         if(GB.SND_regs.channels.master.L_wave_enable && GB.SND_regs.channels.wave.DAC_power)
-           l += (GB.APU.wave.value );
 
-      if (GB.SND_regs.channels.master.L_noise_enable)
-         l += (GB.APU.noise.value * GB.APU.noise.envelope.volume);
-      //         l += GB.APU.noise.value << 3;
+      if (GB.SND_regs.channels.master.square1_status_flag)
+      {
+         if (GB.SND_regs.channels.master.L_square1_enable)
+            l += (GB.APU.square1.value * GB.APU.square1.envelope.volume);
+         if (GB.SND_regs.channels.master.R_square1_enable)
+            r += (GB.APU.square1.value * GB.APU.square1.envelope.volume);
+      }
+      if (GB.SND_regs.channels.master.square2_status_flag)
+      {
+         if (GB.SND_regs.channels.master.L_square2_enable)
+            l += (GB.APU.square2.value * GB.APU.square2.envelope.volume);
+         if (GB.SND_regs.channels.master.R_square2_enable)
+            r += (GB.APU.square2.value * GB.APU.square2.envelope.volume);
+      }
+      if (GB.SND_regs.channels.master.wave_status_flag && GB.SND_regs.channels.wave.DAC_power)
+      {
+         if (GB.SND_regs.channels.master.L_wave_enable)
+            l += GB.APU.wave.value;
+         if (GB.SND_regs.channels.master.R_wave_enable)
+            r += GB.APU.wave.value;
+      }
+
+      if (GB.SND_regs.channels.master.noise_status_flag)
+      {
+         if (GB.SND_regs.channels.master.L_noise_enable)
+            l += (GB.APU.noise.value * GB.APU.noise.envelope.volume);
+         if (GB.SND_regs.channels.master.R_noise_enable)
+            r += (GB.APU.noise.value * GB.APU.noise.envelope.volume);
+      }
 
       if (!(GB.APU.counter & (GBEMU_AUDIO_DECIMATION_RATE - 1)))
       {
@@ -239,7 +243,10 @@ void gbemu_apu_run(int target_cycles)
          l <<= 9;
          l -= (1 << 8);
          l /= GBEMU_AUDIO_DECIMATION_RATE;
-         r = l;
+         r <<= 9;
+         r -= (1 << 8);
+         r /= GBEMU_AUDIO_DECIMATION_RATE;
+
          *GB.APU.write_pos++ = l;
          *GB.APU.write_pos++ = r;
 
