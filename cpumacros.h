@@ -914,7 +914,6 @@
    do{\
    GB_WRITE_U8(--REG_SP, (uint8_t)(REG_PC >> 8));\
    GB_WRITE_U8(--REG_SP, (uint8_t)REG_PC);\
-   CPU_disable_halt();\
    REG_PC = addr;\
    CPU_cycles_add(5);\
    }while(0)
