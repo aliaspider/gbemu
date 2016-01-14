@@ -4,6 +4,7 @@
 #include "cpudisasm.h"
 
 #include <string.h>
+#include <stdarg.h>
 
 gbemu_state_t GB;
 
