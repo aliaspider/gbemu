@@ -318,17 +318,32 @@ size_t retro_get_memory_size(unsigned id)
    return 0;
 }
 size_t retro_serialize_size(void)
-{
-   return 0;
+{   
+   return sizeof(GB);
 }
 
 bool retro_serialize(void* data, size_t size)
 {
-   return false;
+   gbemu_state_t* saved_state = (gbemu_state_t*)data;
+
+   if (size != retro_serialize_size())
+      return false;
+   memcpy(data, &GB, sizeof(GB));
+
+   saved_state->MBC.active_ROM_bank = (uint8_t*)((uintptr_t)saved_state->MBC.active_ROM_bank - (uintptr_t)&GB);
+   saved_state->MBC.active_SRAM_bank = (uint8_t*)((uintptr_t)saved_state->MBC.active_SRAM_bank - (uintptr_t)&GB);
+
+   return true;
 }
 bool retro_unserialize(const void* data, size_t size)
 {
-   return false;
+   if (size != sizeof(GB))
+      return false;
+   memcpy(&GB, data , sizeof(GB));
+   GB.MBC.active_ROM_bank = (uint8_t*)((uintptr_t)GB.MBC.active_ROM_bank + (uintptr_t)&GB);
+   GB.MBC.active_SRAM_bank = (uint8_t*)((uintptr_t)GB.MBC.active_SRAM_bank + (uintptr_t)&GB);
+
+   return true;
 }
 
 void retro_cheat_reset(void)
