@@ -7,6 +7,7 @@
 #include <stdarg.h>
 
 gbemu_state_t GB;
+static bool has_bios;
 
 #define gb_check_addr(reg, addr, size) \
    do {\
@@ -120,12 +121,11 @@ void gbemu_reset(void)
    GB.CPU.HL = 0x014D;
    GB.CPU.SP = 0xFFFE;
 #ifdef USE_BIOS
-   if(bios_data)
+   if(has_bios)
       GB.CPU.PC = 0x0000;
    else
-#else
-   GB.CPU.PC = 0x0100;
 #endif
+   GB.CPU.PC = 0x0100;
    GB.CPU.cycles = 0;
    GB.CPU.IME = 1;
    GB.CPU.HALT = 0;
@@ -210,9 +210,11 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
    memcpy(GB.BIOS, GB.MEMORY, 0x100);
 #endif
 
+
    if(bios_data)
    {
 #ifdef USE_BIOS
+      has_bios = true;
       memcpy(GB.MEMORY, bios_data, 0x100);
 #else
       memcpy(GB.BIOS, bios_data, 0x100);
@@ -226,6 +228,8 @@ bool gbemu_load_game(const void* data, size_t size, const void* bios_data)
       }
       gbemu_printf("\n");
    }
+   else
+      has_bios = false;
 
    gbemu_printf("header info\n");
    gbemu_printf("buffer0 : ");
