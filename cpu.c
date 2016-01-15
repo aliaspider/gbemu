@@ -249,8 +249,20 @@ void gbemu_write_u8(uint16_t addr, uint8_t val)
    case 0xFF44:
       return;
    case 0xFF46:
-      memcpy(GB.OAM, &GB.MEMORY[val << 8], 0xA0);
+   {
+      if (GB.MBC.type != CART_TYPE_GENERIC)
+      {
+         if (val >= 0x40 && val < 0x80)
+            memcpy(GB.OAM, &GB.MBC.active_ROM_bank[(val&0x3F) << 8], 0xA0);
+         else if (val >= 0xA0 && val < 0xC0)
+            memcpy(GB.OAM, &GB.MBC.active_SRAM_bank[(val&0x1F) << 8], 0xA0);
+         else
+            memcpy(GB.OAM, &GB.MEMORY[val << 8], 0xA0);
+      }
+      else
+         memcpy(GB.OAM, &GB.MEMORY[val << 8], 0xA0);
       return;
+   }
    default:
       if (addr < 0x8000)
          return;
