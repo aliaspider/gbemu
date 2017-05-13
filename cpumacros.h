@@ -44,6 +44,7 @@
 #define CPU_cycles_inc()      CPU.cycles++
 #define CPU_cycles_add(count) CPU.cycles += count
 #define CPU_exec_next()       goto next_instruction
+#define CPU_exec_current()    goto current_instruction
 #define CPU_exec_next_nocheck()       goto next_instruction_nocheck
 #define CPU_enable_int()       CPU.IME = 1
 #define CPU_disable_int()      CPU.IME = 0
@@ -932,9 +933,15 @@
 /* incomplete : */
 
 #define CPU_HALT() \
-   CPU_enable_halt();\
+   if(CPU.IME)\
+   {\
+      CPU_cycles_inc();\
+      CPU_enable_halt();\
+      CPU_exec_next();\
+   }\
+   inst = GB_READ_U8(REG_PC);\
    CPU_cycles_inc();\
-   CPU_exec_next()
+   CPU_exec_current()
 
 #define CPU_STOP() \
    CPU_cycles_inc();\

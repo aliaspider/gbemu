@@ -500,7 +500,9 @@ next_instruction_nocheck:
       memcpy(GB.MEMORY, GB.BIOS, 0x100);
 #endif
 
-   switch (GB_READ_PC())
+   uint8_t inst = GB_READ_PC();
+current_instruction:
+   switch (inst)
    {
    // NOP
    //   case 0x7F:
